@@ -1,12 +1,13 @@
 Drupal.moderationInit = function() {
-  var id = $(this).attr("id").substring(13);
+  var id = $(this).attr("id").substring(16);
+  
   $(this).after('<div id="moderation-preview-'+id+'" class="moderation-preview"></div>');
   $('#moderation-preview-'+id).hide();
 }
 
 Drupal.moderationPreview = function() {
   $(this).click(function () {
-    var id = $(this).parent().attr("id").substring(14);
+    var id = $(this).parent().attr("id").substring(17);
     var preview = $('#moderation-preview-'+id);
 
     if (preview.html().length == 0) {
@@ -27,7 +28,7 @@ Drupal.moderationPreview = function() {
       success: function(status) {
         $('#moderation-preview-'+id+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">Dieser Beitrag wurde in der Zwischenzeit moderiert.</div>');
+          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">This item has been changed in the meantime.</div>');
         }
       }
     });
@@ -37,7 +38,7 @@ Drupal.moderationPreview = function() {
 }
 
 Drupal.moderationButtonStatus = function() {
-  var nid = $(this).attr("id").substring(15);
+  var nid = $(this).attr("id").substring(18);
 
   //insert buttons
   if ($(this).attr("id").match('moderation-status-')) $(this).html('<a id="moderation-status-link-'+nid+'" href="#">'+$(this).html()+'</a>');
@@ -48,8 +49,8 @@ Drupal.moderationButtonStatus = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-status-link-'+nid).html('Veröffentlicht');
-          else $('#moderation-status-link-'+nid).html('Nicht Veröffentlicht');
+          if (result[1]) $('#moderation-status-link-'+nid).html('published');
+          else $('#moderation-status-link-'+nid).html('not published');
         }
       }
     });
@@ -58,7 +59,7 @@ Drupal.moderationButtonStatus = function() {
 }
 
 Drupal.moderationButtonPromote = function() {
-  var nid = $(this).attr("id").substring(16);
+  var nid = $(this).attr("id").substring(19);
 
   //insert buttons
   if ($(this).attr("id").match('moderation-promote-')) $(this).html('<a id="moderation-promote-link-'+nid+'" href="#">'+$(this).html()+'</a>');
@@ -69,8 +70,8 @@ Drupal.moderationButtonPromote = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-promote-link-'+nid).html('Auf der Startseite');
-          else $('#moderation-promote-link-'+nid).html('Nicht auf der Startseite');
+          if (result[1]) $('#moderation-promote-link-'+nid).html('promoted');
+          else $('#moderation-promote-link-'+nid).html('not promoted');
         }
       }
     });
@@ -79,7 +80,7 @@ Drupal.moderationButtonPromote = function() {
 }
 
 Drupal.moderationButtonSticky = function() {
-  var nid = $(this).attr("id").substring(15);
+  var nid = $(this).attr("id").substring(18);
   
   //insert buttons
   if ($(this).attr("id").match('moderation-sticky-')) $(this).html('<a id="moderation-sticky-link-'+nid+'" href="#">'+$(this).html()+'</a>');
@@ -90,8 +91,8 @@ Drupal.moderationButtonSticky = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-sticky-link-'+nid).html('Am Anfang von Listen');
-          else $('#moderation-sticky-link-'+nid).html('Nicht am Anfang von Listen');
+          if (result[1]) $('#moderation-sticky-link-'+nid).html('sticky');
+          else $('#moderation-sticky-link-'+nid).html('not sticky');
         }
       }
     });
@@ -100,7 +101,7 @@ Drupal.moderationButtonSticky = function() {
 }
 
 Drupal.moderationButtonModerate = function() {
-  var nid = $(this).attr("id").substring(17);
+  var nid = $(this).attr("id").substring(20);
 
   //insert buttons
   if ($(this).attr("id").match('moderation-moderate-')) $(this).html('<a id="moderation-moderate-link-'+nid+'" href="#">'+$(this).html()+'</a>');
@@ -112,11 +113,11 @@ Drupal.moderationButtonModerate = function() {
       success: function(result){
         if (result[0]) {
           if (result[1]) {
-            $('#moderation-moderate-link-'+nid).html('Moderiert');
+            $('#moderation-moderate-link-'+nid).html('moderated');
             $('#moderation-preview-'+nid+':visible').slideUp();
           }
           else {
-            $('#moderation-moderate-link-'+nid).html('Nicht moderiert');
+            $('#moderation-moderate-link-'+nid).html('not moderated');
           }
         }
       }

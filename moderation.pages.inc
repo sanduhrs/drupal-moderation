@@ -98,7 +98,8 @@ function moderation_get_preview($obj_id, $obj_type) {
   else if ($obj_type == 'comment') {
     if ($comment = _comment_load($obj_id)) {
       $_GET['q'] = 'node/'. $comment->nid;
-      $data = theme('comment_view', $comment);
+      $node = node_load($comment->nid);
+      $data = theme('comment_view', $comment, $node);
     }
   }
   print drupal_to_js($data);

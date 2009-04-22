@@ -1,12 +1,12 @@
 Drupal.moderationInit = function() {
-  var id = $(this).attr("id").substring(13);
+  var id = $(this).attr("id").substring(16);
   $(this).after('<div id="moderation-preview-'+id+'" class="moderation-preview"></div>');
   $('#moderation-preview-'+id).hide();
 };
 
 Drupal.moderationPreview = function() {
   $(this).click(function () {
-    var cid = $(this).parent().attr("id").substring(14);
+    var cid = $(this).parent().attr("id").substring(17);
     var preview = $('#moderation-preview-'+cid);
 
     if (preview.html().length == 0) {
@@ -27,7 +27,7 @@ Drupal.moderationPreview = function() {
       success: function(status) {
         $('#moderation-preview-'+cid+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+cid).prepend('<div class="moderation-messages status">Dieser Kommentar wurde in der Zwischenzeit moderiert.</div>');
+          $('#moderation-preview-'+cid).prepend('<div class="moderation-messages status">This item has been changed in the meantime.</div>');
         }
       }
     });
@@ -37,7 +37,7 @@ Drupal.moderationPreview = function() {
 };
 
 Drupal.moderationButtonStatus = function() {
-  var cid = $(this).attr("id").substring(15);
+  var cid = $(this).attr("id").substring(18);
 
   //insert buttons
   if ($(this).attr("id").match('moderation-status-')) $(this).html('<a id="moderation-status-link-'+cid+'" href="?q=moderation/comment/status/'+cid+'">'+$(this).html()+'</a>');
@@ -48,8 +48,8 @@ Drupal.moderationButtonStatus = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-status-link-'+cid).html('Nicht Veröffentlicht');
-          else $('#moderation-status-link-'+cid).html('Veröffentlicht');
+          if (result[1]) $('#moderation-status-link-'+cid).html('not published');
+          else $('#moderation-status-link-'+cid).html('published');
         }
       }
     });
@@ -58,7 +58,7 @@ Drupal.moderationButtonStatus = function() {
 };
 
 Drupal.moderationButtonModerate = function() {
-  var cid = $(this).attr("id").substring(17);
+  var cid = $(this).attr("id").substring(20);
 
   //insert buttons
   if ($(this).attr("id").match('moderation-moderate-')) $(this).html('<a id="moderation-moderate-link-'+cid+'" href="?q=moderation/comment/moderate/'+cid+'">'+$(this).html()+'</a>');
@@ -70,11 +70,11 @@ Drupal.moderationButtonModerate = function() {
       success: function(result){
         if (result[0]) {
           if (result[1]) {
-            $('#moderation-moderate-link-'+cid).html('Moderiert');
+            $('#moderation-moderate-link-'+cid).html('moderated');
             $('#moderation-preview-'+cid+':visible').slideUp();
           }
           else {
-            $('#moderation-moderate-link-'+cid).html('Nicht Moderiert');
+            $('#moderation-moderate-link-'+cid).html('not moderated');
           }
         }
       }
