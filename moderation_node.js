@@ -1,18 +1,18 @@
 Drupal.moderationInit = function() {
-  var nid = $(this).id().substring(13);
-  $(this).after('<div id="moderation-preview-'+nid+'" class="moderation-preview"></div>');
-  $('#moderation-preview-'+nid).hide();
+  var id = $(this).attr("id").substring(13);
+  $(this).after('<div id="moderation-preview-'+id+'" class="moderation-preview"></div>');
+  $('#moderation-preview-'+id).hide();
 }
 
 Drupal.moderationPreview = function() {
   $(this).click(function () {
-    var nid = $(this).parent().id().substring(14);
-    var preview = $('#moderation-preview-'+nid);
+    var id = $(this).parent().attr("id").substring(14);
+    var preview = $('#moderation-preview-'+id);
 
     if (preview.html().length == 0) {
       //load node data
       var html = $.ajax({
-        url: "?q=moderation/node/"+nid+"/get/preview",
+        url: "?q=moderation/node/"+id+"/get/preview",
         dataType: "json",
         success: function(html){
           preview.html(html);
@@ -22,12 +22,12 @@ Drupal.moderationPreview = function() {
     preview.toggle();
 
     $.ajax({
-      url: "?q=moderation/node/"+nid+"/get/moderate",
+      url: "?q=moderation/node/"+id+"/get/moderate",
       dataType: "json",
       success: function(status) {
-        $('#moderation-preview-'+nid+' .moderation-messages').remove();
+        $('#moderation-preview-'+id+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+nid).prepend('<div class="moderation-messages status">Dieser Beitrag wurde in der Zwischenzeit moderiert.</div>');
+          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">Dieser Beitrag wurde in der Zwischenzeit moderiert.</div>');
         }
       }
     });
@@ -37,10 +37,10 @@ Drupal.moderationPreview = function() {
 }
 
 Drupal.moderationButtonStatus = function() {
-  var nid = $(this).id().substring(15);
+  var nid = $(this).attr("id").substring(15);
 
   //insert buttons
-  if ($(this).id().match('moderation-status-')) $(this).html('<a id="moderation-status-link-'+nid+'" href="#">'+$(this).html()+'</a>');
+  if ($(this).attr("id").match('moderation-status-')) $(this).html('<a id="moderation-status-link-'+nid+'" href="#">'+$(this).html()+'</a>');
   $('#moderation-status-link-'+nid).click(function () {
     //load node data
     var html = $.ajax({
@@ -58,10 +58,10 @@ Drupal.moderationButtonStatus = function() {
 }
 
 Drupal.moderationButtonPromote = function() {
-  var nid = $(this).id().substring(16);
+  var nid = $(this).attr("id").substring(16);
 
   //insert buttons
-  if ($(this).id().match('moderation-promote-')) $(this).html('<a id="moderation-promote-link-'+nid+'" href="#">'+$(this).html()+'</a>');
+  if ($(this).attr("id").match('moderation-promote-')) $(this).html('<a id="moderation-promote-link-'+nid+'" href="#">'+$(this).html()+'</a>');
   $('#moderation-promote-link-'+nid).click(function () {
     //load node data
     var html = $.ajax({
@@ -79,10 +79,10 @@ Drupal.moderationButtonPromote = function() {
 }
 
 Drupal.moderationButtonSticky = function() {
-  var nid = $(this).id().substring(15);
+  var nid = $(this).attr("id").substring(15);
   
   //insert buttons
-  if ($(this).id().match('moderation-sticky-')) $(this).html('<a id="moderation-sticky-link-'+nid+'" href="#">'+$(this).html()+'</a>');
+  if ($(this).attr("id").match('moderation-sticky-')) $(this).html('<a id="moderation-sticky-link-'+nid+'" href="#">'+$(this).html()+'</a>');
   $('#moderation-sticky-link-'+nid).click(function () {
     //load node data
     var html = $.ajax({
@@ -100,10 +100,10 @@ Drupal.moderationButtonSticky = function() {
 }
 
 Drupal.moderationButtonModerate = function() {
-  var nid = $(this).id().substring(17);
+  var nid = $(this).attr("id").substring(17);
 
   //insert buttons
-  if ($(this).id().match('moderation-moderate-')) $(this).html('<a id="moderation-moderate-link-'+nid+'" href="#">'+$(this).html()+'</a>');
+  if ($(this).attr("id").match('moderation-moderate-')) $(this).html('<a id="moderation-moderate-link-'+nid+'" href="#">'+$(this).html()+'</a>');
   $('#moderation-moderate-link-'+nid).click(function () {
     //load node data
     var html = $.ajax({

@@ -13,63 +13,119 @@
  * Implementation of hook_install().
  */
 function moderation_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {moderation} (
-                  obj_id int(11) NOT NULL,
-                  obj_type varchar(250) NOT NULL,
-                  uid int(11) NOT NULL,
-                  attribute varchar(250) NOT NULL,
-                  status int(1) NOT NULL,
-                  created int(10) NOT NULL,
-                  KEY obj_id (obj_id),
-                  KEY obj_type (obj_type),
-                  KEY uid (uid)
-                ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;"
-      );
-      db_query("CREATE TABLE {moderation_moderation} (
-                  obj_id int(11) NOT NULL,
-                  obj_type varchar(250) NOT NULL,
-                  status int(3) NOT NULL,
-                  KEY obj_id (obj_id),
-                  KEY obj_type (obj_type),
-                  KEY status (status)
-                ) TYPE=MyISAM /*!40100 DEFAULT CHARACTER SET utf8 */;"
-      );
+  drupal_install_schema('moderation');
 
-      $moderated = 0; // 1, 0
-      $obj_types = array('node', 'comment');
-      $start     = 0;
-      
-      foreach ($obj_types as $obj_type) {
-        $start = variable_get('moderation_install_last_'. $obj_type .'_id', 0);
-        
-        if ($obj_type == 'node') {
-          $result = db_query("SELECT nid as id FROM {node} WHERE nid>=%d ORDER BY nid ASC", $start);
-        }
-        else if ($obj_type == 'comment') {
-          $result = db_query("SELECT cid as id FROM {comments} WHERE cid>=%d ORDER BY cid ASC", $start);
-        }
-        
-        while ($row = db_fetch_object($result)) {
-          db_query("INSERT INTO {moderation_moderation} SET obj_type='%s', obj_id=%d, status=%d", $obj_type, $row->id, $moderated);
-          variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
-        }
-      }
-      
-      break;
+  $moderated = 0; // 1, 0
+  $obj_types = array('node', 'comment');
+  $start     = 0;
 
-    case 'pgsql':
-      break;
+  foreach ($obj_types as $obj_type) {
+    $start = variable_get('moderation_install_last_'. $obj_type .'_id', 0);
+
+    if ($obj_type == 'node') {
+      $result = db_query("SELECT nid as id FROM {node} WHERE nid>=%d ORDER BY nid ASC", $start);
+    }
+    else if ($obj_type == 'comment') {
+      $result = db_query("SELECT cid as id FROM {comments} WHERE cid>=%d ORDER BY cid ASC", $start);
+    }
+
+    while ($row = db_fetch_object($result)) {
+      db_query("INSERT INTO {moderation_moderation} SET obj_type='%s', obj_id=%d, status=%d", $obj_type, $row->id, $moderated);
+      variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
+    }
   }
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function moderation_schema() {
+  $schema['moderation'] = array(
+    'fields' => array(
+      'obj_id' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'obj_type' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'uid' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'attribute' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
+      'created' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+    ),
+    'indexes' => array(
+      'obj_id' => array('obj_id'),
+      'obj_type' => array('obj_type'),
+      'uid' => array('uid'),
+    ),
+  );
+  $schema['moderation_moderation'] = array(
+    'fields' => array(
+      'obj_id' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'obj_type' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
+    ),
+    'indexes' => array(
+      'obj_id' => array('obj_id'),
+      'obj_type' => array('obj_type'),
+      'status' => array('status'),
+    ),
+  );
+  return $schema;
 }
 
 /**
  *  Implementation of hook_uninstall().
  */
 function moderation_uninstall() {
-  db_query("DROP TABLE {moderation}");
-  db_query("DROP TABLE {moderation_moderation}");  
+  drupal_uninstall_schema('moderation');
+}
+
+
+/**
+ * Implementation of hook_update_6001().
+ */
+function moderation_update_6001() {
+  $ret = array();
+  variable_set('moderation_moderated_types', array('letter', 'post', 'poll', 'imagecontestimage'));
+  return $ret;
 }
 
