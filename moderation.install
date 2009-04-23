@@ -14,6 +14,7 @@
  */
 function moderation_install() {
   drupal_install_schema('moderation');
+  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
 
   $moderated = 0; // 1, 0
   $obj_types = array('node', 'comment');
@@ -117,6 +118,7 @@ function moderation_schema() {
  */
 function moderation_uninstall() {
   drupal_uninstall_schema('moderation');
+  variable_del('moderation_moderated_types');
 }
 
 
@@ -125,7 +127,7 @@ function moderation_uninstall() {
  */
 function moderation_update_6001() {
   $ret = array();
-  variable_set('moderation_moderated_types', array('letter', 'post', 'poll', 'imagecontestimage'));
+  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
   return $ret;
 }
 
