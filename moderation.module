@@ -102,7 +102,7 @@ function moderation_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   switch ($op) {
     case 'load':
       if (in_array($node->type, variable_get('moderation_moderated_types', array()))) {
-        return db_fetch_array(db_query("SELECT status as moderate FROM {moderation_moderation} zm WHERE zm.obj_type = 'node' AND zm.obj_id = %d", $node->nid)); 
+        return db_fetch_array(db_query("SELECT status as moderate FROM {moderation_moderation} mm WHERE mm.obj_type = 'node' AND mm.obj_id = %d", $node->nid)); 
       }
     case 'update' :
     case 'insert' :
