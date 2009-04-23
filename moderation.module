@@ -14,7 +14,15 @@
  **/
 function moderation_menu() {
   $items = array();
-
+  
+  $items['node/%/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
+    'page arguments' => array('node', 1),
+    'access arguments' => array('administer nodes'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+  );
   $items['admin/content/node/moderation'] = array(
     'title' => 'Moderation',
     'page callback' => 'moderation_node_queue',
@@ -22,26 +30,30 @@ function moderation_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'moderation.moderation.inc',
   );
-  $items['admin/content/node/moderated1'] = array(
-    'title' => 'Moderated Content',
-    'page callback' => 'moderation_node_queue',
+  $items['admin/content/node/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
     'access arguments' => array('administer nodes'),
+    'page arguments' => array('node'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'moderation.moderation.inc',
+    'weight' => 1,
   );
-  $items['admin/content/comment/list/moderation'] = array(
+  $items['admin/content/comment/moderation'] = array(
     'title' => 'Moderation',
     'page callback' => 'moderation_comment_queue',
     'access arguments' => array('administer comments'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'moderation.moderation.inc',
   );
-  $items['admin/content/comment/list/moderated1'] = array(
-    'title' => 'Moderated Comments',
-    'page callback' => 'moderation_comment_queue',
+  $items['admin/content/comment/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
+    'page arguments' => array('comment'),
     'access arguments' => array('administer comments'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'moderation.moderation.inc',
+    'weight' => 1,
   );
 
   $items['admin/settings/moderation'] = array(
@@ -50,7 +62,6 @@ function moderation_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('moderation_admin_settings'),
     'access arguments' => array('administer site configuration'),
-    //'type' => MENU_NORMAL_ITEM,
     'file' => 'moderation.admin.inc',
   );
 
@@ -136,18 +147,11 @@ function moderation_form_alter(&$form, &$form_state, $form_id) {
   if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id)  {
     if (moderation_is_moderated_type($form['type']['#value'])) {
       if (user_access('administer nodes')) {
-  //      $form['options']['moderate'] = array(
-  //        '#type' => 'checkbox', 
-  //        '#title' => t('Has been moderated'), 
-  //        '#default_value' => $form['#node']->moderate,
-  //        '#weight' => 24,
-  //        '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
-  //      );
-        $form['moderate'] = array(
+        $form['options']['moderate'] = array(
           '#type' => 'checkbox', 
-          '#title' => t('Has been moderated'),
+          '#title' => t('Has been moderated'), 
           '#default_value' => $form['#node']->moderate,
-          '#weight' => -10,
+          '#weight' => 24,
           '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
         );
       }
@@ -161,20 +165,13 @@ function moderation_form_alter(&$form, &$form_state, $form_id) {
 function moderation_form_comment_form_alter(&$form, &$form_state) {
   if (user_access('administer nodes')) {
     $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='comment'", $form['cid']['#value']));
-    //      $form['admin']['moderate'] = array(
-    //        '#type' => 'checkbox',
-    //        '#title' => 'Has been moderated',
-    //        '#default_value' => $status,
-    //        '#weight' => -1,
-    //        '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
-    //      );
-    $form['moderate'] = array(
-      '#type' => 'checkbox',
-      '#title' => 'Has been moderated',
-      '#default_value' => $status,
-      '#weight' => -10,
-      '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
-    );
+      $form['admin']['moderate'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Has been moderated',
+        '#default_value' => $status,
+        '#weight' => -1,
+        '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
+      );
   }
 }
 

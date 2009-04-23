@@ -28,7 +28,7 @@ Drupal.moderationPreview = function() {
       success: function(status) {
         $('#moderation-preview-'+id+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">This item has been changed in the meantime.</div>');
+          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">'+Drupal.t('This item has been changed in the meantime.')+'</div>');
         }
       }
     });
@@ -49,8 +49,8 @@ Drupal.moderationButtonStatus = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-status-link-'+nid).html('published');
-          else $('#moderation-status-link-'+nid).html('not published');
+          if (result[1]) $('#moderation-status-link-'+nid).html(Drupal.t('published'));
+          else $('#moderation-status-link-'+nid).html(Drupal.t('not published'));
         }
       }
     });
@@ -70,8 +70,8 @@ Drupal.moderationButtonPromote = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-promote-link-'+nid).html('promoted');
-          else $('#moderation-promote-link-'+nid).html('not promoted');
+          if (result[1]) $('#moderation-promote-link-'+nid).html(Drupal.t('promoted'));
+          else $('#moderation-promote-link-'+nid).html(Drupal.t('not promoted'));
         }
       }
     });
@@ -91,8 +91,8 @@ Drupal.moderationButtonSticky = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-sticky-link-'+nid).html('sticky');
-          else $('#moderation-sticky-link-'+nid).html('not sticky');
+          if (result[1]) $('#moderation-sticky-link-'+nid).html(Drupal.t('sticky'));
+          else $('#moderation-sticky-link-'+nid).html(Drupal.t('not sticky'));
         }
       }
     });
@@ -113,11 +113,11 @@ Drupal.moderationButtonModerate = function() {
       success: function(result){
         if (result[0]) {
           if (result[1]) {
-            $('#moderation-moderate-link-'+nid).html('moderated');
+            $('#moderation-moderate-link-'+nid).html(Drupal.t('moderated'));
             $('#moderation-preview-'+nid+':visible').slideUp();
           }
           else {
-            $('#moderation-moderate-link-'+nid).html('not moderated');
+            $('#moderation-moderate-link-'+nid).html(Drupal.t('not moderated'));
           }
         }
       }

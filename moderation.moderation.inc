@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Moderation
+ * Moderation - nodes and comments queue
  *
  * @author
  * Stefan Auditor <stefan.auditor@erdfisch.de>
@@ -134,4 +134,72 @@ function moderation_comment_queue() {
   $output .= theme('pager', NULL, 50);
   return $output;
 }
+
+function moderation_log($type = 'node', $obj_id = NULL) {
+
+  switch ($type) {
+    case 'comment':
+      $sql = "SELECT m.*, c.nid, c.cid, c.subject, u.uid, u.name FROM {moderation} m 
+                LEFT JOIN {comments} c ON c.cid = m.obj_id 
+                LEFT JOIN {users} u ON u.uid = m.uid 
+                WHERE obj_type = 'comment' " . ($obj_id ? 'AND m.obj_id = ' . $obj_id : '') . " ORDER BY m.created DESC";
+      break;
+    case 'node':
+      $sql = "SELECT m.*, n.title, n.nid, u.uid, u.name FROM {moderation} m 
+                LEFT JOIN {node} n ON n.nid = m.obj_id 
+                LEFT JOIN {users} u ON u.uid = m.uid
+                WHERE obj_type = 'node' " . ($obj_id ? 'AND m.obj_id = ' . $obj_id : '') . " ORDER BY m.created DESC";
+      break;
+  }
+
+  $result = pager_query($sql, 25, 0, NULL);
+  while ($moderation = db_fetch_object($result)) {
+    $title = $moderation->subject ? $moderation->subject : $moderation->title;
+    $fragment = $moderation->cid ? 'comment-' . $moderation->cid : NULL;
+    
+    $user->uid = $moderation->uid;
+    $user->name = $moderation->name;
+    
+    $moderations[] = array(
+      l($title, 'node/' . $moderation->nid, array('fragment' => $fragment)),
+      theme('username', $user),
+      moderation_log_message($moderation->attribute, $moderation->status, $type),
+      format_date($moderation->created),
+    );
+  }
+
+  $header = array(
+    t('Title'), t('User'), t('Action'), t('Date'),
+  );
+  $output = theme('table', $header, $moderations);
+  $output .= theme('pager');
+  return $output;
+}
+
+function moderation_log_message($attribute, $status, $type) {
+  switch ($attribute) {
+    case 'status':
+      $message = $status ? t('Published') : t('Unpublished');
+      break;
+    case 'moderate':
+      $message = $status ? t('Moderated') : t('Unmoderated');
+      break;
+    case 'sticky':
+      $message = $status ? t('Made sticky') : t('Removed stickyness');
+      break;
+    case 'promote':
+      $message = $status ? t('Promoted') : t('Not promoted');
+      break;
+  }
+  return $message;
+}
+
+
+
+
+
+
+
+
+
 

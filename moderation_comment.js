@@ -27,7 +27,7 @@ Drupal.moderationPreview = function() {
       success: function(status) {
         $('#moderation-preview-'+cid+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+cid).prepend('<div class="moderation-messages status">This item has been changed in the meantime.</div>');
+          $('#moderation-preview-'+cid).prepend('<div class="moderation-messages status">'+Drupal.t('This item has been changed in the meantime.')+'</div>');
         }
       }
     });
@@ -48,8 +48,8 @@ Drupal.moderationButtonStatus = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-status-link-'+cid).html('not published');
-          else $('#moderation-status-link-'+cid).html('published');
+          if (result[1]) $('#moderation-status-link-'+cid).html(drupal.t('not published'));
+          else $('#moderation-status-link-'+cid).html(Drupal.t('published'));
         }
       }
     });
@@ -70,11 +70,11 @@ Drupal.moderationButtonModerate = function() {
       success: function(result){
         if (result[0]) {
           if (result[1]) {
-            $('#moderation-moderate-link-'+cid).html('moderated');
+            $('#moderation-moderate-link-'+cid).html(Drupal.t('moderated'));
             $('#moderation-preview-'+cid+':visible').slideUp();
           }
           else {
-            $('#moderation-moderate-link-'+cid).html('not moderated');
+            $('#moderation-moderate-link-'+cid).html(Drupal.t('not moderated'));
           }
         }
       }
