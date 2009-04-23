@@ -193,13 +193,3 @@ function moderation_log_message($attribute, $status, $type) {
   }
   return $message;
 }
-
-
-
-
-
-
-
-
-
-

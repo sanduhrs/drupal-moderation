@@ -28,7 +28,7 @@ Drupal.moderationPreview = function() {
       success: function(status) {
         $('#moderation-preview-'+id+' .moderation-messages').remove();
         if (status == 1) {
-          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">'+Drupal.t('This item has been changed in the meantime.')+'</div>');
+          $('#moderation-preview-'+id).prepend('<div class="moderation-messages status">'+Drupal.t('This item has been moderated in the meantime.')+'</div>');
         }
       }
     });
