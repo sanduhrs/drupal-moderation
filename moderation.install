@@ -63,6 +63,7 @@ function moderation_install() {
     case 'pgsql':
       break;
   }
+  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
 }
 
 /**
@@ -70,6 +71,15 @@ function moderation_install() {
  */
 function moderation_uninstall() {
   db_query("DROP TABLE {moderation}");
-  db_query("DROP TABLE {moderation_moderation}");  
+  db_query("DROP TABLE {moderation_moderation}");
+  variable_del('moderation_moderated_types');
 }
 
+/**
+ * Implementation of hook_update_5001().
+ */
+function moderation_update_5001() {
+  $ret = array();
+  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
+  return $ret;
+}
