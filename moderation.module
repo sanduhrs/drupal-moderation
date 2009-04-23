@@ -464,7 +464,7 @@ function moderation_log($type = 'node', $obj_id = NULL) {
     $user->name = $moderation->name;
     
     $moderations[] = array(
-      l($title, 'node/' . $moderation->nid, array('fragment' => $fragment)),
+      l($title, 'node/' . $moderation->nid, array(), NULL, $fragment),
       theme('username', $user),
       moderation_log_message($moderation->attribute, $moderation->status, $type),
       format_date($moderation->created),
