@@ -48,7 +48,7 @@ Drupal.moderationButtonStatus = function() {
       dataType: "json",
       success: function(result){
         if (result[0]) {
-          if (result[1]) $('#moderation-status-link-'+cid).html(drupal.t('not published'));
+          if (result[1]) $('#moderation-status-link-'+cid).html(Drupal.t('not published'));
           else $('#moderation-status-link-'+cid).html(Drupal.t('published'));
         }
       }
