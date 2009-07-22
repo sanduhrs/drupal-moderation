@@ -14,7 +14,9 @@
  */
 function moderation_node_queue() {
   drupal_add_css(drupal_get_path('module', 'moderation') .'/moderation.css');
-  drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation_node.js');
+  $settings = array('moderationType' => 'node');
+  drupal_add_js('jQuery.extend(Drupal.settings, '. drupal_to_js($settings) .')', 'inline');
+  drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation.js');
 
   $query = "SELECT n.*, u.name, u.uid, mm.status as moderate FROM {node} n  
               INNER JOIN {users} u ON n.uid = u.uid
@@ -22,8 +24,8 @@ function moderation_node_queue() {
                 WHERE mm.obj_type = 'node'
                   AND (mm.status IS NULL OR mm.status=0)
                   AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_moderated_types', array())) ."')
-                ORDER BY n.created DESC";
-  $result = pager_query($query, 50);
+                ORDER BY n.created DESC, n.title ASC";
+  $result = pager_query(db_rewrite_sql($query), 50);
   
   $destination = drupal_get_destination();
   
@@ -35,11 +37,12 @@ function moderation_node_queue() {
                 ORDER BY m.created DESC
                 LIMIT 1";
     $moderation = db_fetch_object(db_query($query, $node->nid));
+    $token = drupal_get_token('node-'. $node->nid);
 
-    $item = '<div id="moderation-node-'. $node->nid .'" class="moderation-node clear-block container-inline">';
+    $item = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
     $item .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
     $item .= format_date($node->created, 'small') .' ';
-    $item .= l($node->title, 'node/'. $node->nid) .' ';
+    $item .= l($node->title, 'moderation/node/'. $node->nid .'/get/preview');
     $item .= theme('mark', node_mark($node->nid, $node->changed));
     if ($moderation) {
       $item .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
@@ -48,13 +51,13 @@ function moderation_node_queue() {
     $item .= '</div>';
     
     $item .= '<div id="moderation-info-'. $node->nid .'" class="moderation-info clear-block">';
-    $item .= '  <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('target' => '_blank'), $destination) .'</span>';
+    $item .= '  <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('query' => drupal_get_destination())) .'</span>';
     $item .= '  <span id="moderation-username-'. $node->nid .'" class="moderation-attribute moderation-username">'. t('By !user', array('!user' => theme('username', $node))) .'</span>';
     $item .= '  <span id="moderation-name-'. $node->nid .'" class="moderation-attribute moderation-name">'. check_plain(node_get_types('name', $node)) .'</span>';
-    $item .= '  <span id="moderation-status-'. $node->nid .'" class="moderation-attribute moderation-status">'. ($node->status   ? t('published') : t('not published')) .'</span>';
-    $item .= '  <span id="moderation-promote-'. $node->nid .'" class="moderation-attribute moderation-promote">'. ($node->promote  ? t('promoted')  : t('not promoted')) .'</span>';
-    $item .= '  <span id="moderation-sticky-'. $node->nid .'" class="moderation-attribute moderation-sticky">'. ($node->sticky   ? t('sticky')    : t('not sticky')) .'</span>';
-    $item .= '  <span id="moderation-moderate-'. $node->nid .'" class="moderation-attribute moderation-moderate">'. ($node->moderate ? t('moderated') : t('not moderated')) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('published') : t('not published')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('promoted')  : t('not promoted')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('sticky')    : t('not sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($node->moderate ? t('moderated') : t('not moderated')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
     $item .= '</div>';
     
     $rows[] = array('data' => 
@@ -81,13 +84,16 @@ function moderation_node_queue() {
  */
 function moderation_comment_queue() {
   drupal_add_css(drupal_get_path('module', 'moderation') .'/moderation.css');
-  drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation_comment.js');
+  $settings = array('moderationType' => 'comment');
+  drupal_add_js('jQuery.extend(Drupal.settings, '. drupal_to_js($settings) .')', 'inline');
+  drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation.js');
   
-  $result = pager_query("SELECT c.*, mm.status as moderate FROM {comments} c 
-                           LEFT JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
-                           WHERE mm.obj_type = 'comment'
-                             AND (mm.status IS NULL OR mm.status=0)
-                           ORDER BY c.timestamp DESC", 50);
+  $query = "SELECT c.*, mm.status as moderate FROM {comments} c
+           LEFT JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
+           WHERE mm.obj_type = 'comment'
+             AND (mm.status IS NULL OR mm.status=0)
+           ORDER BY c.timestamp DESC, c.subject ASC";
+  $result = pager_query(db_rewrite_sql($query), 50);
   $destination = drupal_get_destination();
   
   while ($comment = db_fetch_object($result)) {
@@ -98,11 +104,12 @@ function moderation_comment_queue() {
                 ORDER BY m.created DESC
                 LIMIT 1";
     $moderation = db_fetch_object(db_query($query, $comment->cid));
+    $token = drupal_get_token('comment-'. $comment->cid);
     
-    $item = '<div id="moderation-comment-'. $comment->cid .'" class="moderation-comment clear-block container-inline">';
+    $item = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
     $item .= '<div id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
     $item .= format_date($comment->timestamp, 'small') .' ';
-    $item .= l($comment->subject, 'node/'. $comment->nid, array(), NULL, 'comment-'. $comment->cid) .' ';
+    $item .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview');
     $item .= theme('mark', node_mark($comment->cid, $comment->changed));
     if ($moderation) {
       $item .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
@@ -111,10 +118,10 @@ function moderation_comment_queue() {
     $item .= '</div>';
     
     $item .= '<div id="moderation-info-'. $comment->cid .'" class="moderation-info clear-block">';
-    $item .= '  <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('target' => '_blank'), $destination) .'</span>';
+    $item .= '  <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('query' => drupal_get_destination())) .'</span>';
     $item .= '  <span id="moderation-username-'. $comment->cid .'" class="moderation-attribute moderation-username">'. t('By !user', array('!user' => theme('username', $comment))) .'</span>';
-    $item .= '  <span id="moderation-moderate-'. $comment->cid .'" class="moderation-attribute moderation-moderate">'. ($comment->moderate ? t('moderated') : t('not moderated')) .'</span>';
-    $item .= '  <span id="moderation-status-'. $comment->cid .'" class="moderation-attribute moderation-status">'. ($comment->status   ? t('not published') : t('published')) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($comment->moderate ? t('moderated') : t('not moderated')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('not published') : t('published')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
     $item .= '</div>';
     
     $rows[] = array('data' => 

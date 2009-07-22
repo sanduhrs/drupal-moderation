@@ -10,6 +10,16 @@
  */
  
 function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
+  $js = isset($_REQUEST['js']);
+  $token = $_REQUEST['token'];
+
+  // Check for valid token
+  // We don't need a token if $op is get
+  if (!drupal_valid_token($token, $obj_type .'-'. $obj_id) && $op != 'get') {
+    drupal_access_denied();
+    exit();
+  }
+
   $attributes = array('status', 'promote', 'sticky', 'moderate', 'preview');
   $types      = array('node', 'comment');
   
@@ -19,9 +29,17 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   
   if ($op == 'get') {
     if ($attribute == 'preview') {
-      moderation_get_preview($obj_id, $obj_type);
+      if ($js) {
+        // Return content for preview if js is available
+        moderation_get_preview($obj_id, $obj_type);
+      }
+      else {
+        // Redirect to node/comment if js is not available
+        moderation_goto($obj_id, $obj_type);
+      }
     }
     else {
+      // Return the current value for an attribute
       moderation_get_attribute($obj_id, $obj_type, $attribute);
     }
     exit();
@@ -32,15 +50,38 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
       case 'status':
       case 'promote':
       case 'sticky':
-        moderation_switch_attribute($obj_id, $obj_type, $attribute);
+        $result = moderation_switch_attribute($obj_id, $obj_type, $attribute);
         break;
       case 'moderate':
-        moderation_switch_moderation($obj_id, $obj_type);
+        $result = moderation_switch_moderation($obj_id, $obj_type);
         break;
+    }
+
+    if ($js) {
+      print drupal_to_js($result);
+      exit();
+    }
+    else {
+      drupal_set_message(t('The changes have been saved.'));
+      drupal_goto();
     }
   }
   
   return drupal_not_found();
+}
+
+/**
+ * Redirect to a node/comment
+ */
+function moderation_goto($obj_id, $obj_type) {
+  if ($obj_type == 'node') {
+    drupal_goto('node/'. $obj_id);
+  }
+  else {
+    if ($comment = _comment_load($obj_id)) {
+      drupal_goto('node/'. $comment->nid, NULL, 'comment-'. $comment->cid);
+    }
+  }
 }
 
 /**
@@ -55,8 +96,7 @@ function moderation_switch_moderation($obj_id, $obj_type) {
   $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type));
   db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
   db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type);
-  print drupal_to_js(array(db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='%s', status=%d", $obj_id, $obj_type, !$status), !$status, 'moderate'));
-  exit();
+  return array(db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='%s', status=%d", $obj_id, $obj_type, !$status), !$status, 'moderate');
 }
 
 /**
@@ -78,9 +118,8 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
     $success = db_query("UPDATE {comments} SET %s=%d WHERE cid=%d", $attribute, $status_new, $obj_id);
   }
 
-  db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());  
-  print drupal_to_js(array($success, $status_new, $attribute));
-  exit();
+  db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());
+  return array($success, $status_new, $attribute);
 }
 
 /**
@@ -99,7 +138,7 @@ function moderation_get_preview($obj_id, $obj_type) {
     if ($comment = _comment_load($obj_id)) {
       $_GET['q'] = 'node/'. $comment->nid;
       $node = node_load($comment->nid);
-      $data = theme('comment_view', $comment, $node);
+      $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
     }
   }
   print drupal_to_js($data);
