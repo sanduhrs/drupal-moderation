@@ -1,9 +1,4 @@
-.moderation-moderate, .moderation-sticky, .moderation-promote, .moderation-status {
-  display:none;
-}
-
-.moderation-comment div.preview,
-.moderation-comment div.messages {
+.moderation-content div.messages {
   display: block;
 }
 
@@ -16,6 +11,10 @@
   padding:0.5em 1em
 }
 
+.moderation-preview {
+  display: none;
+}
+
 .moderation-moderation {
   float:right;
   margin-top:-20px;
@@ -26,7 +25,12 @@
   float:right;
 }
 
-.moderation-username {
+.moderation-username,
+.moderation-name {
   padding-left:0;
   float: left;
+}
+
+.moderation-preview .comment {
+  border-top:none;
 }
