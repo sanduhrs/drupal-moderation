@@ -129,8 +129,8 @@ function moderation_comment(&$a1, $op) {
       db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='comment', status=%d", $a1['cid'], $a1['moderate']);
       break;
     case 'delete':
-      db_query("DELETE FROM {moderation} WHERE obj_type='comment' AND obj_id=%d", $a1['cid']);
-      db_query("DELETE FROM {moderation_moderation} WHERE obj_type='comment' AND obj_id=%d", $a1['cid']);
+      db_query("DELETE FROM {moderation} WHERE obj_type='comment' AND obj_id=%d", $a1->cid);
+      db_query("DELETE FROM {moderation_moderation} WHERE obj_type='comment' AND obj_id=%d", $a1->cid);
       break;
   }
 }

@@ -1,4 +1,4 @@
 ; $Id$
 name  = Moderation
-description  = A node and comment meration queue.
+description  = A node and comment moderation queue.
 core = 6.x
