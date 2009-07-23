@@ -41,23 +41,23 @@ function moderation_install() {
       $moderated = 0; // 1, 0
       $obj_types = array('node', 'comment');
       $start     = 0;
-      
+
       foreach ($obj_types as $obj_type) {
         $start = variable_get('moderation_install_last_'. $obj_type .'_id', 0);
-        
+
         if ($obj_type == 'node') {
           $result = db_query("SELECT nid as id FROM {node} WHERE nid>=%d ORDER BY nid ASC", $start);
         }
         else if ($obj_type == 'comment') {
           $result = db_query("SELECT cid as id FROM {comments} WHERE cid>=%d ORDER BY cid ASC", $start);
         }
-        
+
         while ($row = db_fetch_object($result)) {
           db_query("INSERT INTO {moderation_moderation} SET obj_type='%s', obj_id=%d, status=%d", $obj_type, $row->id, $moderated);
           variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
         }
       }
-      
+
       break;
 
     case 'pgsql':
@@ -67,7 +67,7 @@ function moderation_install() {
 }
 
 /**
- *  Implementation of hook_uninstall().
+ * Implementation of hook_uninstall().
  */
 function moderation_uninstall() {
   db_query("DROP TABLE {moderation}");
