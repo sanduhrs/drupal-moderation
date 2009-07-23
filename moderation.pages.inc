@@ -96,6 +96,11 @@ function moderation_switch_moderation($obj_id, $obj_type) {
   $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type));
   db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
   db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type);
+  if ($obj_type == 'node') {
+    // Theres a core moderate attribute
+    // we update it here, to support modules that use on it
+    moderation_switch_attribute($obj_id, $obj_type, 'moderate');
+  }
   return array(db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='%s', status=%d", $obj_id, $obj_type, !$status), !$status, 'moderate');
 }
 
