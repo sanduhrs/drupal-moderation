@@ -54,10 +54,10 @@ function moderation_node_queue() {
     $item .= '  <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('query' => drupal_get_destination())) .'</span>';
     $item .= '  <span id="moderation-username-'. $node->nid .'" class="moderation-attribute moderation-username">'. t('By !user', array('!user' => theme('username', $node))) .'</span>';
     $item .= '  <span id="moderation-name-'. $node->nid .'" class="moderation-attribute moderation-name">'. check_plain(node_get_types('name', $node)) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('published') : t('not published')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('promoted')  : t('not promoted')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('sticky')    : t('not sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($node->moderate ? t('moderated') : t('not moderated')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('Unpublish') : t('Publish')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('Demote')  : t('Promote')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('Remove stickiness')    : t('Make sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($node->moderate ? t('Unmoderate') : t('Moderate')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
     $item .= '</div>';
     
     $rows[] = array('data' => 
@@ -120,8 +120,8 @@ function moderation_comment_queue() {
     $item .= '<div id="moderation-info-'. $comment->cid .'" class="moderation-info clear-block">';
     $item .= '  <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('query' => drupal_get_destination())) .'</span>';
     $item .= '  <span id="moderation-username-'. $comment->cid .'" class="moderation-attribute moderation-username">'. t('By !user', array('!user' => theme('username', $comment))) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($comment->moderate ? t('moderated') : t('not moderated')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
-    $item .= '  <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('not published') : t('published')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($comment->moderate ? t('Unmoderate') : t('Moderate')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
+    $item .= '  <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('Publish') : t('Unpublish')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
     $item .= '</div>';
     
     $rows[] = array('data' => 
@@ -192,7 +192,7 @@ function moderation_log_message($attribute, $status, $type) {
       $message = $status ? t('Moderated') : t('Unmoderated');
       break;
     case 'sticky':
-      $message = $status ? t('Made sticky') : t('Removed stickyness');
+      $message = $status ? t('Made sticky') : t('Removed stickiness');
       break;
     case 'promote':
       $message = $status ? t('Promoted') : t('Not promoted');

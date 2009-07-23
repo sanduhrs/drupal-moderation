@@ -42,10 +42,10 @@ Drupal.moderationButton = function() {
   var obj_id = id.split('-')[3];
   var url = window.location.protocol+'//'+window.location.hostname+$(this).attr("href");
   var text = {
-    'status': {0: Drupal.t('not published'), 1: Drupal.t('published')},
-    'promote': {0: Drupal.t('not promoted'), 1: Drupal.t('promoted')},
-    'sticky': {0: Drupal.t('not sticky'), 1: Drupal.t('sticky')},
-    'moderate': {0: Drupal.t('not moderated'), 1: Drupal.t('moderated')}
+    'status': {0: Drupal.t('Publish'), 1: Drupal.t('Unpublish')},
+    'promote': {0: Drupal.t('Promote'), 1: Drupal.t('Demote')},
+    'sticky': {0: Drupal.t('Make sticky'), 1: Drupal.t('Remove stickiness')},
+    'moderate': {0: Drupal.t('Moderate'), 1: Drupal.t('Unmoderate')}
   };
   
   $(this).click(function () {
