@@ -8,7 +8,7 @@
  * @author
  * Stefan Auditor <stefan.auditor@erdfisch.de>
  */
- 
+
 function moderation_admin_settings() {
   $form['moderation_moderated_types'] = array(
     '#type' => 'checkboxes',

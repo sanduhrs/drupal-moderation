@@ -8,7 +8,10 @@
  * @author
  * Stefan Auditor <stefan.auditor@erdfisch.de>
  */
- 
+
+/**
+ * Menu callback;
+ */
 function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
@@ -22,11 +25,11 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
 
   $attributes = array('status', 'promote', 'sticky', 'moderate', 'preview');
   $types      = array('node', 'comment');
-  
+
   if (!is_numeric($obj_id) OR !in_array($obj_type, $types) OR !in_array($attribute, $attributes)) {
     return drupal_not_found();
   }
-  
+
   if ($op == 'get') {
     if ($attribute == 'preview') {
       if ($js) {
@@ -44,7 +47,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
     }
     exit();
   }
-  
+
   if ($op == 'set') {
     switch ($attribute) {
       case 'status':
@@ -66,7 +69,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
       drupal_goto();
     }
   }
-  
+
   return drupal_not_found();
 }
 
@@ -92,7 +95,7 @@ function moderation_goto($obj_id, $obj_type) {
  */
 function moderation_switch_moderation($obj_id, $obj_type) {
   global $user;
-    
+
   $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type));
   db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
   db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type);
@@ -113,7 +116,7 @@ function moderation_switch_moderation($obj_id, $obj_type) {
  */
 function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
   global $user;
-  
+
   if ($obj_type == 'node') {
     $status_new = !db_result(db_query("SELECT %s FROM {node} WHERE nid=%d", $attribute, $obj_id));
     $success = db_query("UPDATE {node} SET %s=%d WHERE nid=%d", $attribute, $status_new, $obj_id);
@@ -129,12 +132,12 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
 
 /**
  * Get the preview markup for a node or a comment
- * 
+ *
  * @param integer $obj_id
  * @param string $obj_type
  */
 function moderation_get_preview($obj_id, $obj_type) {
-  if ($obj_type == 'node') { 
+  if ($obj_type == 'node') {
     if ($node = node_load($obj_id)) {
       $data = theme('moderation_node_preview', $node);
     }
@@ -160,13 +163,13 @@ function moderation_get_preview($obj_id, $obj_type) {
 function moderation_get_attribute($obj_id, $obj_type, $attribute) {
   $table = ($obj_type == 'comment') ? 'comments' : 'node';
   $id    = ($obj_type == 'comment') ? 'cid'      : 'nid';
-  
+
   if ($attribute == 'moderate') {
     print drupal_to_js(array(db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type))));
   }
   else {
     print drupal_to_js(array(db_result(db_query("SELECT %s FROM {%s} WHERE %s=%d", $attribute , $table, $id, $obj_id))));
   }
-  
+
   exit();
 }

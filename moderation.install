@@ -114,7 +114,7 @@ function moderation_schema() {
 }
 
 /**
- *  Implementation of hook_uninstall().
+ * Implementation of hook_uninstall().
  */
 function moderation_uninstall() {
   drupal_uninstall_schema('moderation');
