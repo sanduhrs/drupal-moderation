@@ -159,7 +159,7 @@ function moderation_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
     case 'insert' :
       if (moderation_is_moderated_type($node->type)) {
         db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='node'", $node->nid);
-        db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='node', status=%d", $node->nid, $node->moderate);
+        db_query("INSERT INTO {moderation_moderation} (obj_id, obj_type, status) VALUES (%d, 'node', %d)", $node->nid, $node->moderate);
       }
       break;
     case 'delete':
@@ -177,7 +177,7 @@ function moderation_comment(&$a1, $op) {
     case 'insert':
     case 'update':
       db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='comment'", $a1['cid']);
-      db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='comment', status=%d", $a1['cid'], $a1['moderate']);
+      db_query("INSERT INTO {moderation_moderation} (obj_id, obj_type, status) VALUES (%d, 'comment', %d)", $a1['cid'], $a1['moderate']);
       break;
     case 'delete':
       db_query("DELETE FROM {moderation} WHERE obj_type='comment' AND obj_id=%d", $a1->cid);
@@ -366,14 +366,14 @@ function moderation_switch_moderation($obj_id, $obj_type) {
   global $user;
 
   $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type));
-  db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
+  db_query("INSERT INTO {moderation} (obj_id, obj_type, uid, attribute, status, created) VALUES (%d, '%s', %d, '%s', %d, %d)", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
   db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type);
   if ($obj_type == 'node') {
     // Theres a core moderate attribute
     // we update it here, to support modules that use on it
     moderation_switch_attribute($obj_id, $obj_type, 'moderate');
   }
-  return array(db_query("INSERT INTO {moderation_moderation} SET obj_id=%d, obj_type='%s', status=%d", $obj_id, $obj_type, !$status), !$status, 'moderate');
+  return array(db_query("INSERT INTO {moderation_moderation} (obj_id, obj_type, status) VALUES (%d, '%s', %d)", $obj_id, $obj_type, !$status), !$status, 'moderate');
 }
 
 /**
@@ -395,7 +395,7 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
     $success = db_query("UPDATE {comments} SET %s=%d WHERE cid=%d", $attribute, $status_new, $obj_id);
   }
 
-  db_query("INSERT INTO {moderation} SET obj_id=%d, obj_type='%s', uid=%d, attribute='%s', status=%d, created=%d", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());
+  db_query("INSERT INTO {moderation} (obj_id, obj_type, uid, attribute, status, created) VALUES (%d, '%s', %d, '%s', %d, %d)", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());
   return array($success, $status_new, $attribute);
 }
 

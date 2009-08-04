@@ -53,7 +53,7 @@ function moderation_install() {
         }
 
         while ($row = db_fetch_object($result)) {
-          db_query("INSERT INTO {moderation_moderation} SET obj_type='%s', obj_id=%d, status=%d", $obj_type, $row->id, $moderated);
+          db_query("INSERT INTO {moderation_moderation} (obj_type, obj_id, status) VALUES ('%s', %d, %d)", $obj_type, $row->id, $moderated);
           variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
         }
       }
