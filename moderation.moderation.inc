@@ -105,11 +105,12 @@ function moderation_comment_queue() {
                 LIMIT 1";
     $moderation = db_fetch_object(db_query($query, $comment->cid));
     $token = drupal_get_token('comment-'. $comment->cid);
+    $node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = %d", $comment->nid));
 
     $item = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
     $item .= '<div id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
     $item .= format_date($comment->timestamp, 'small') .' ';
-    $item .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview');
+    $item .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'))));
     $item .= theme('mark', node_mark($comment->cid, $comment->changed));
     if ($moderation) {
       $item .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
@@ -120,6 +121,7 @@ function moderation_comment_queue() {
     $item .= '<div id="moderation-info-'. $comment->cid .'" class="moderation-info clear-block">';
     $item .= '  <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('query' => drupal_get_destination())) .'</span>';
     $item .= '  <span id="moderation-username-'. $comment->cid .'" class="moderation-attribute moderation-username">'. t('By !user', array('!user' => theme('username', $comment))) .'</span>';
+    $item .= '  <span id="moderation-parent-'. $comment->cid .'" class="moderation-attribute moderation-parent">'. t('Show !node', array('!node' => l('Node', 'node/'. $comment->nid, array('attributes' => array('title' => check_plain($node_title)))))) .'</span>';
     $item .= '  <span class="moderation-attribute moderation-moderate">'. l(($comment->moderate ? t('Unmoderate') : t('Moderate')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
     $item .= '  <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('Publish') : t('Unpublish')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
     $item .= '</div>';

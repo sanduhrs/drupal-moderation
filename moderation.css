@@ -26,7 +26,8 @@
 }
 
 .moderation-username,
-.moderation-name {
+.moderation-name,
+.moderation-parent {
   padding-left:0;
   float: left;
 }
