@@ -15,6 +15,7 @@ Drupal.moderationPreview = function() {
         dataType: "json",
         success: function(html){
           preview.html(html);
+          Drupal.attachBehaviors(preview);
         }
       });
     }
@@ -34,7 +35,7 @@ Drupal.moderationPreview = function() {
     
     return false;
   });
-}
+};
 
 Drupal.moderationButton = function() {
   var id = $(this).attr("id");
@@ -69,15 +70,12 @@ Drupal.moderationButton = function() {
     });
     return false;
   });
-}
+};
 
-// Global Killswitch
-if (Drupal.jsEnabled) {
-  $(document).ready(function() {
-    $('.moderation-content').each(Drupal.moderationPreview);
-    $('.moderation-status-link').each(Drupal.moderationButton);
-    $('.moderation-promote-link').each(Drupal.moderationButton);
-    $('.moderation-sticky-link').each(Drupal.moderationButton);
-    $('.moderation-moderate-link').each(Drupal.moderationButton);
-  });
-}
+Drupal.behaviors.moderationInit = function (context) {
+  $('.moderation-content', context).each(Drupal.moderationPreview);
+  $('.moderation-status-link', context).each(Drupal.moderationButton);
+  $('.moderation-promote-link', context).each(Drupal.moderationButton);
+  $('.moderation-sticky-link', context).each(Drupal.moderationButton);
+  $('.moderation-moderate-link', context).each(Drupal.moderationButton);
+};

@@ -12,6 +12,7 @@
 /**
  * Menu callback;
  */
+                                 // thread/124/get/preview
 function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
@@ -24,7 +25,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   }
 
   $attributes = array('status', 'promote', 'sticky', 'moderate', 'preview');
-  $types      = array('node', 'comment');
+  $types      = array('node', 'comment', 'thread');
 
   if (!is_numeric($obj_id) OR !in_array($obj_type, $types) OR !in_array($attribute, $attributes)) {
     return drupal_not_found();
@@ -61,6 +62,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
     }
 
     if ($js) {
+      $GLOBALS['devel_shutdown'] = FALSE;
       print drupal_to_js($result);
       exit();
     }
@@ -147,6 +149,12 @@ function moderation_get_preview($obj_id, $obj_type) {
       $_GET['q'] = 'node/'. $comment->nid;
       $node = node_load($comment->nid);
       $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
+    }
+  }
+  else if ($obj_type == 'thread') {
+      if ($node = node_load($obj_id)) {
+      $data = theme('moderation_node_preview', $node);
+      $data .= theme('moderation_comments_preview', $node);
     }
   }
   print drupal_to_js($data);

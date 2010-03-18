@@ -17,7 +17,6 @@
 
 .moderation-moderation {
   float:right;
-  margin-top:-20px;
 }
 
 .moderation-attribute {
@@ -26,12 +25,30 @@
 }
 
 .moderation-username,
-.moderation-name,
-.moderation-parent {
+.moderation-name {
   padding-left:0;
   float: left;
 }
 
+.moderation-parent {
+  padding-left:0;
+  float: left;
+  width:100%;
+  display:block;
+}
+
 .moderation-preview .comment {
   border-top:none;
+}
+
+.moderation-preview div#comments {
+  margin:0;
+  padding:0;
+}
+
+.moderation-preview div#comments h2.comments {
+  margin:0;
+  padding:0;
+  background:none;
+  clear:both;
 }
