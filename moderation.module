@@ -129,10 +129,10 @@ function moderation_theme() {
   );
 }
 
-function moderation_moderation_access_callback($arg1) {
-  $access = ($arg1 == 'node'    AND user_access('access node queue')) ||
-            ($arg1 == 'comment' AND user_access('access comment queue')) ||
-            ($arg1 == 'thread'  AND user_access('access thread queue'))
+function moderation_moderation_access_callback($arg) {
+  $access = (($arg == 'node'    AND user_access('access node queue')) ||
+            ($arg == 'comment' AND user_access('access comment queue')) ||
+            ($arg == 'thread'  AND user_access('access thread queue')))
             ? TRUE : FALSE;
   return $access;
 }
