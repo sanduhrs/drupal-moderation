@@ -6,9 +6,13 @@ Drupal.moderationPreview = function() {
   $(this).next('.moderation-info').after('<div id="moderation-preview-'+obj_id+'" class="moderation-preview"></div>');
   
   $('.moderation-title > a', this).click(function () {
+    var link = $(this);
+
 	var preview = $('#moderation-preview-'+obj_id);
     var url = window.location.protocol+'//'+window.location.hostname+$(this).attr("href");
     if (preview.html().length == 0) {
+      link.addClass('throbbing');
+
       //load node data
       var html = $.ajax({
         url: url+'&js=1',
@@ -16,6 +20,7 @@ Drupal.moderationPreview = function() {
         success: function(html){
           preview.html(html);
           Drupal.attachBehaviors(preview);
+          link.removeClass('throbbing');
         }
       });
     }

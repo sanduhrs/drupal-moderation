@@ -2,6 +2,13 @@
   display: block;
 }
 
+.moderation-title .throbbing {
+  background-image: url(../../../../misc/throbber.gif);
+  background-position: 100% -20px;
+  background-repeat: no-repeat;
+  padding-right: 20px;
+}
+
 .moderation-messages {
   border-color:#C7F2C8;
   color:#33AA33;
