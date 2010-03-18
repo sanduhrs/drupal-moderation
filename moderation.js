@@ -55,6 +55,9 @@ Drupal.moderationButton = function() {
   };
   
   $(this).click(function () {
+    var link = $(this);
+    link.addClass('throbbing');
+
     //load node data
     var html = $.ajax({
       url: url+'&js=1',
@@ -71,6 +74,7 @@ Drupal.moderationButton = function() {
         if (result[1] && type == 'moderate') {
         	$('#'+id).parent().parent().next('.moderation-preview').hide('slow');
         }
+        link.removeClass('throbbing');
       }
     });
     return false;
