@@ -25,7 +25,7 @@ function moderation_menu() {
   $items['admin/content/moderation'] = array(
     'title' => 'Moderation',
     'page callback' => 'moderation_queue',
-    'access arguments' => array('moderate queue'),
+    'access arguments' => array('access thread queue'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'moderation.moderation.inc',
   );
