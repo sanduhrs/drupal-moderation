@@ -475,8 +475,7 @@ function moderation_admin_settings() {
 }
 
 function moderation_is_moderated_type($type) {
-  $types = variable_get('moderation_moderated_types', array());
-  return ($types[$type]);
+  return in_array($type, variable_get('moderation_moderated_types', array()));
 }
 
 function moderation_log($type = 'node', $obj_id = NULL) {
