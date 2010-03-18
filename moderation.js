@@ -1,5 +1,5 @@
 // $Id$
-
+(function($) {
 Drupal.moderationPreview = function() {
   var id = $(this).attr("id");
   var obj_id = $(this).attr("id").split('-')[2];
@@ -79,3 +79,4 @@ Drupal.behaviors.moderationInit = function (context) {
   $('.moderation-sticky-link', context).each(Drupal.moderationButton);
   $('.moderation-moderate-link', context).each(Drupal.moderationButton);
 };
+})(jQuery);
