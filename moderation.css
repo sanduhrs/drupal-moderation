@@ -52,3 +52,25 @@
   background:none;
   clear:both;
 }
+.moderation-queue td {
+  padding-top:10px;
+  padding-bottom:10px;
+  }
+  
+.moderation-queue .moderation-title a {
+  font-weight:bold;
+  }
+  
+.moderation-queue .moderation-operations a,
+.moderation-queue .moderation-moderate a,
+.moderation-queue .moderation-sticky a,
+.moderation-queue .moderation-promote a,
+.moderation-queue .moderation-status a {
+  font-size:90%;
+  }
+  
+.moderation-queue .preview,
+.moderation-queue .thread-preview {
+  border-left:40px solid #F2F2F2;
+  padding-left:6px;
+  }
