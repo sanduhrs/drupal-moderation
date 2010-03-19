@@ -75,9 +75,8 @@
 .moderation-queue .moderation-status a {
   font-size:90%;
   }
-  
-.moderation-queue .preview,
+
 .moderation-queue .thread-preview {
-  border-left:40px solid #F2F2F2;
-  padding-left:6px;
+  background-color:#FCFCE8;
+  padding: 10px;
   }

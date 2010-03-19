@@ -63,7 +63,8 @@ Drupal.moderationButton = function() {
       url: url+'&js=1',
       dataType: "json",
       success: function(result){
-        if (result[0] && !(Drupal.settings.moderationType == 'comment' && type == 'status')) {
+        // Exception for comments status
+        if (result[0] && !(result[3] == 'comment' && type == 'status')) {
           if (result[1]) $('#'+id).html(text[type][1]);
           else $('#'+id).html(text[type][0]);
         }

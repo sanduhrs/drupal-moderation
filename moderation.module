@@ -27,6 +27,7 @@ function moderation_menu() {
     'page callback' => 'moderation_queue',
     'access arguments' => array('access thread queue'),
     'type' => MENU_NORMAL_ITEM,
+    'description' => t('Moderate nodes and comments in a combined view.'),
     'file' => 'moderation.moderation.inc',
   );
   $items['admin/content/node/moderation'] = array(

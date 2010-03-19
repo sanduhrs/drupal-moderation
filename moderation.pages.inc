@@ -129,7 +129,7 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
   }
 
   db_query("INSERT INTO {moderation} (obj_id, obj_type, uid, attribute, status, created) VALUES (%d, '%s', %d, '%s', %d, %d)", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());
-  return array($success, $status_new, $attribute);
+  return array($success, $status_new, $attribute, $obj_type);
 }
 
 /**
