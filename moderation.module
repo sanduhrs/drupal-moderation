@@ -130,6 +130,9 @@ function moderation_theme() {
   );
 }
 
+/**
+ * Access callback
+ */
 function moderation_moderation_access_callback($arg) {
   $access = (($arg == 'node'    AND user_access('access node queue')) ||
             ($arg == 'comment' AND user_access('access comment queue')) ||
@@ -144,7 +147,7 @@ function moderation_moderation_access_callback($arg) {
 function moderation_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   switch ($op) {
     case 'load':
-      if (in_array($node->type, variable_get('moderation_moderated_types', array()))) {
+      if (in_array($node->type, variable_get('moderation_content_types', array()))) {
         return db_fetch_array(db_query("SELECT status as moderate FROM {moderation_moderation} mm WHERE mm.obj_type = 'node' AND mm.obj_id = %d", $node->nid));
       }
     case 'update' :
@@ -179,7 +182,7 @@ function moderation_comment(&$a1, $op) {
 }
 
 function moderation_is_moderated_type($type) {
-  return in_array($type, variable_get('moderation_moderated_types', array()));
+  return in_array($type, variable_get('moderation_content_types', array()));
 }
 
 /**

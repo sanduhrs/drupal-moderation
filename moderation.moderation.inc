@@ -28,7 +28,7 @@ function moderation_queue() {
               INNER JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
                 WHERE mm.obj_type = 'comment'
                   AND (mm.status IS NULL OR mm.status=0)
-                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_moderated_types', array())) ."')
+                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_thread_types', array())) ."')
                 ORDER BY n.created DESC, n.title ASC";
   $count_query = "SELECT COUNT(DISTINCT(n.nid)) FROM {node} n
               INNER JOIN {users} u ON n.uid = u.uid
@@ -36,7 +36,7 @@ function moderation_queue() {
               INNER JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
                 WHERE mm.obj_type = 'comment'
                   AND (mm.status IS NULL OR mm.status=0)
-                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_moderated_types', array())) ."')";
+                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_thread_types', array())) ."')";
   $result = pager_query(db_rewrite_sql($query), 50, 0, $count_query);
 
   $destination = drupal_get_destination();
@@ -86,7 +86,7 @@ function moderation_node_queue() {
               LEFT JOIN {moderation_moderation} mm ON n.nid = mm.obj_id
                 WHERE mm.obj_type = 'node'
                   AND (mm.status IS NULL OR mm.status=0)
-                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_moderated_types', array())) ."')
+                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_content_types', array())) ."')
                 ORDER BY n.created DESC, n.title ASC";
   $result = pager_query(db_rewrite_sql($query), 50);
 

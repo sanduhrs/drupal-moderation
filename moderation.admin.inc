@@ -10,10 +10,10 @@
  */
 
 function moderation_admin_settings() {
-  $form['moderation_moderated_types'] = array(
+  $form['moderation_content_types'] = array(
     '#type' => 'checkboxes',
     '#options' => node_get_types('names'),
-    '#default_value' => variable_get('moderation_moderated_types', array()),
+    '#default_value' => variable_get('moderation_content_types', array()),
     '#title' => t('Set nodetypes shown which are moderated'),
   );
   return system_settings_form($form);
@@ -23,10 +23,9 @@ function moderation_admin_settings() {
  * Only saves contentypes which are checked.
  */
 function moderation_admin_settings_validate(&$form, &$form_state) {
-  foreach ($form_state['values']['moderation_moderated_types'] as $type => $value) {
+  foreach ($form_state['values']['moderation_content_types'] as $type => $value) {
     if (!$value) {
-      unset($form_state['values']['moderation_moderated_types'][$type]);
+      unset($form_state['values']['moderation_content_types'][$type]);
     }
   }
 }
-

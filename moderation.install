@@ -10,11 +10,11 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implementation of HOOK_install().
  */
 function moderation_install() {
   drupal_install_schema('moderation');
-  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
+  variable_set('moderation_content_types', array('page', 'story', 'blog'));
 
   $moderated = 0; // 1, 0
   $obj_types = array('node', 'comment');
@@ -38,7 +38,7 @@ function moderation_install() {
 }
 
 /**
- * Implementation of hook_schema().
+ * Implementation of HOOK_schema().
  */
 function moderation_schema() {
   $schema['moderation'] = array(
@@ -114,16 +114,15 @@ function moderation_schema() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implementation of HOOK_uninstall().
  */
 function moderation_uninstall() {
   drupal_uninstall_schema('moderation');
-  variable_del('moderation_moderated_types');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'moderation_%'");
 }
 
-
 /**
- * Implementation of hook_update_6001().
+ * Implementation of HOOK_update_N().
  */
 function moderation_update_6001() {
   $ret = array();
@@ -131,3 +130,10 @@ function moderation_update_6001() {
   return $ret;
 }
 
+/**
+ * Implementation of HOOK_update_N().
+ */
+function moderation_update_6100() {
+  $sql = "UPDATE {variable} SET name = 'moderation_content_types' WHERE name = 'moderation_moderated_types'";
+  return update_sql($sql);
+}
