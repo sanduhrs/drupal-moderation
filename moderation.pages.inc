@@ -152,6 +152,10 @@ function moderation_get_preview($obj_id, $obj_type) {
   }
   elseif ($obj_type == 'thread') {
       if ($node = node_load($obj_id)) {
+
+      // fix drupal_get_destination issue for propper redirection
+      $_REQUEST['destination'] = 'admin/content/moderation';
+
       $data = theme('moderation_node_preview', $node);
       $data .= theme('moderation_comments_preview', $node);
     }
