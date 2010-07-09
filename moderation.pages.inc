@@ -12,7 +12,6 @@
 /**
  * Menu callback;
  */
-                                 // thread/124/get/preview
 function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
@@ -123,7 +122,7 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
     $status_new = !db_result(db_query("SELECT %s FROM {node} WHERE nid=%d", $attribute, $obj_id));
     $success = db_query("UPDATE {node} SET %s=%d WHERE nid=%d", $attribute, $status_new, $obj_id);
   }
-  else if ($obj_type == 'comment') {
+  elseif ($obj_type == 'comment') {
     $status_new = !db_result(db_query("SELECT %s FROM {comments} WHERE cid=%d", $attribute, $obj_id));
     $success = db_query("UPDATE {comments} SET %s=%d WHERE cid=%d", $attribute, $status_new, $obj_id);
   }
@@ -144,14 +143,14 @@ function moderation_get_preview($obj_id, $obj_type) {
       $data = theme('moderation_node_preview', $node);
     }
   }
-  else if ($obj_type == 'comment') {
+  elseif ($obj_type == 'comment') {
     if ($comment = _comment_load($obj_id)) {
       $_GET['q'] = 'node/'. $comment->nid;
       $node = node_load($comment->nid);
       $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
     }
   }
-  else if ($obj_type == 'thread') {
+  elseif ($obj_type == 'thread') {
       if ($node = node_load($obj_id)) {
       $data = theme('moderation_node_preview', $node);
       $data .= theme('moderation_comments_preview', $node);

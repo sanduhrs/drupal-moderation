@@ -22,8 +22,7 @@ function moderation_queue() {
     drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
   }
 
-  $query = "SELECT DISTINCT(n.nid), n.*, u.name, u.uid, mm.status as moderate FROM {node} n
-              INNER JOIN {users} u ON n.uid = u.uid
+  $query = "SELECT DISTINCT(n.nid) FROM {node} n
               INNER JOIN {comments} c ON n.nid = c.nid
               INNER JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
                 WHERE mm.obj_type = 'comment'
@@ -31,7 +30,6 @@ function moderation_queue() {
                   AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_thread_types', array())) ."')
                 ORDER BY n.created DESC, n.title ASC";
   $count_query = "SELECT COUNT(DISTINCT(n.nid)) FROM {node} n
-              INNER JOIN {users} u ON n.uid = u.uid
               INNER JOIN {comments} c ON n.nid = c.nid
               INNER JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
                 WHERE mm.obj_type = 'comment'
@@ -41,14 +39,9 @@ function moderation_queue() {
 
   $destination = drupal_get_destination();
 
-  while ($node = db_fetch_object($result)) {
-    $query = "SELECT m.*, u.name FROM {moderation} m
-                LEFT JOIN {users} u ON m.uid = u.uid
-                WHERE m.obj_id=%d
-                  AND m.obj_type='node'
-                ORDER BY m.created DESC
-                LIMIT 1";
-    $moderation = db_fetch_object(db_query($query, $node->nid));
+  while ($row = db_fetch_object($result)) {
+    $node = node_load(array('nid' => $row->nid));
+    $moderation = moderation_get_last('node', $node->nid);
     $token = drupal_get_token('node-'. $node->nid);
 
     $item = theme('moderation_item_thread', $node, $moderation, $token);
@@ -81,25 +74,19 @@ function moderation_node_queue() {
   drupal_add_js('jQuery.extend(Drupal.settings, '. drupal_to_js($settings) .')', 'inline');
   drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation.js');
 
-  $query = "SELECT n.*, u.name, u.uid, mm.status as moderate FROM {node} n
-              INNER JOIN {users} u ON n.uid = u.uid
-              LEFT JOIN {moderation_moderation} mm ON n.nid = mm.obj_id
+  $query = "SELECT n.nid FROM {node} n
+              INNER JOIN {moderation_moderation} mm ON n.nid = mm.obj_id
                 WHERE mm.obj_type = 'node'
                   AND (mm.status IS NULL OR mm.status=0)
-                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_content_types', array())) ."')
+                  AND n.type IN ('" . implode('\' ,\'', variable_get('moderation_node_types', array())) ."')
                 ORDER BY n.created DESC, n.title ASC";
   $result = pager_query(db_rewrite_sql($query), 50);
 
   $destination = drupal_get_destination();
 
-  while ($node = db_fetch_object($result)) {
-    $query = "SELECT m.*, u.name FROM {moderation} m
-                LEFT JOIN {users} u ON m.uid = u.uid
-                WHERE m.obj_id=%d
-                  AND m.obj_type='node'
-                ORDER BY m.created DESC
-                LIMIT 1";
-    $moderation = db_fetch_object(db_query($query, $node->nid));
+  while ($row = db_fetch_object($result)) {
+    $node = node_load(array('nid' => $row->nid));
+    $moderation = moderation_get_last('node', $node->nid);
     $token = drupal_get_token('node-'. $node->nid);
 
     $item = theme('moderation_item_node', $node, $moderation, $token);
@@ -136,7 +123,7 @@ function moderation_comment_queue() {
     drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
   }
 
-  $query = "SELECT c.*, mm.status as moderate FROM {comments} c
+  $query = "SELECT c.cid FROM {comments} c
            LEFT JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
            WHERE mm.obj_type = 'comment'
              AND (mm.status IS NULL OR mm.status=0)
@@ -144,18 +131,13 @@ function moderation_comment_queue() {
   $result = pager_query(db_rewrite_sql($query), 50);
   $destination = drupal_get_destination();
 
-  while ($comment = db_fetch_object($result)) {
-    $query = "SELECT m.*, u.name FROM {moderation} m
-                LEFT JOIN {users} u ON m.uid = u.uid
-                WHERE m.obj_id=%d
-                  AND m.obj_type='comment'
-                ORDER BY m.created DESC
-                LIMIT 1";
-    $moderation = db_fetch_object(db_query($query, $comment->cid));
+  while ($row = db_fetch_object($result)) {
+    $comment = _comment_load($row->cid);
+    $moderation = moderation_get_last('comment', $comment->cid);
     $token = drupal_get_token('comment-'. $comment->cid);
-    $node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = %d", $comment->nid));
+    $node = node_load(array('nid' => $comment->nid));
 
-    $item = theme('moderation_item_comment', $comment, $moderation, $node_title, $token);
+    $item = theme('moderation_item_comment', $comment, $moderation, $node, $token);
 
     $rows[] = array('data' =>
       array(

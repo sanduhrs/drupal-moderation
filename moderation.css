@@ -31,6 +31,10 @@
   float:right;
 }
 
+.moderation-meta {
+  float:left;
+}
+
 .moderation-username,
 .moderation-name {
   padding-left:0;
@@ -40,7 +44,6 @@
 .moderation-parent {
   padding-left:0;
   float: left;
-  width:100%;
   display:block;
 }
 
@@ -74,9 +77,9 @@
 .moderation-queue .moderation-promote a,
 .moderation-queue .moderation-status a {
   font-size:90%;
-  }
+}
 
 .moderation-queue .thread-preview {
   background-color:#FCFCE8;
   padding: 10px;
-  }
+}
