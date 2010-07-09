@@ -73,7 +73,7 @@ Drupal.moderationButton = function() {
           else $('#'+id).html(text[type][1]);
         }
         if (result[1] && type == 'moderate') {
-          $('#'+id).parent().parent().parent().next('.moderation-preview .preview').hide('slow');
+          $('#'+id).parent().parent().parent().next('.moderation-preview').hide('slow');
         }
         link.removeClass('throbbing');
       }
