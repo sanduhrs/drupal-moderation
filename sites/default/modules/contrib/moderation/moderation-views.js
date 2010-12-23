@@ -5,7 +5,6 @@
 (function($) {
   Drupal.moderationPreview = function(context) {
   $("a.moderation-ajax-preview:not('.moderation-preview-processed')", context)
-  .add()
   .after('<div class="moderation-preview"></div>')
   .click(function() {
     var link = $(this);
