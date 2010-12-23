@@ -576,7 +576,6 @@ function theme_moderation_comments_flagged_preview($node) {
  * Theme comment moderation item
  */
 function theme_moderation_item_comment($comment, $moderation, $node, $token) {
-  dsm(123);
   $output = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
   $output .= '<div type="comment" entity-id="' . $comment->cid . '" id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
   $output .= format_date($comment->timestamp, 'small') .' ';
