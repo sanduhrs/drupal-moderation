@@ -5,6 +5,7 @@
 (function($) {
   Drupal.moderationPreview = function(context) {
   $("a.moderation-ajax-preview:not('.moderation-preview-processed')", context)
+  .add()
   .after('<div class="moderation-preview"></div>')
   .click(function() {
     var link = $(this);
@@ -93,7 +94,7 @@ Drupal.moderationButton = function() {
 };
 
 Drupal.behaviors.moderationInit = function (context) {
-//   $('.moderation-content', context).each(Drupal.moderationPreview);
+  $('.moderation-content', context).each(Drupal.moderationPreview);
   $('.moderation-status-link', context).each(Drupal.moderationButton);
   $('.moderation-promote-link', context).each(Drupal.moderationButton);
   $('.moderation-sticky-link', context).each(Drupal.moderationButton);
