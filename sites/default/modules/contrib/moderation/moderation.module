@@ -1,0 +1,754 @@
+<?php
+// $Id: moderation.module,v 1.1.4.15 2010/07/09 08:37:53 sanduhrs Exp $
+
+/**
+ * @file
+ * Moderation - nodes and comments queue
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function moderation_menu() {
+  $items = array();
+  $items['node/%/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
+    'page arguments' => array('node', 1),
+    'access arguments' => array('access node queue'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+  );
+  $items['admin/content/moderation'] = array(
+    'title' => 'Moderation',
+    'page callback' => 'moderation_queue',
+    'access arguments' => array('access thread queue'),
+    'type' => MENU_NORMAL_ITEM,
+    'description' => 'Moderate nodes and comments in a combined view.',
+    'file' => 'moderation.moderation.inc',
+  );
+  $items['admin/content/moderation-flag'] = array(
+    'title' => 'Moderation Flagged',
+    'page callback' => 'moderation_flag_queue',
+    'access arguments' => array('access flag queue'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+  );
+  $items['admin/content/node/moderation'] = array(
+    'title' => 'Moderation',
+    'page callback' => 'moderation_node_queue',
+    'access arguments' => array('access node queue'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+  );
+  $items['admin/content/node/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
+    'access arguments' => array('access node queue'),
+    'page arguments' => array('node'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+    'weight' => 1,
+  );
+  $items['admin/content/comment/moderation'] = array(
+    'title' => 'Moderation',
+    'page callback' => 'moderation_comment_queue',
+    'access arguments' => array('access comment queue'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+  );
+  $items['admin/content/comment/log'] = array(
+    'title' => 'Log',
+    'page callback' => 'moderation_log',
+    'page arguments' => array('comment'),
+    'access arguments' => array('access comment queue'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'moderation.moderation.inc',
+    'weight' => 1,
+  );
+
+  $items['admin/settings/moderation'] = array(
+    'title' => 'Moderation',
+    'description' => 'Configure the thread, node and comment moderation queue.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('moderation_admin_settings'),
+    'access arguments' => array('administer moderation'),
+    'file' => 'moderation.admin.inc',
+  );
+  $items['moderation/%/%/%/%'] = array(
+    'page callback' => 'moderation_callback_switch',
+    'page arguments' => array(1, 2, 3, 4),
+    'access callback' => 'moderation_moderation_access_callback',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+    'file' => 'moderation.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implement hook_perm().
+ */
+function moderation_perm() {
+  return array('administer moderation', 'access thread queue', 'access node queue', 'access flag queue', 'access comment queue');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function moderation_theme() {
+  return array(
+    'moderation_node_preview' => array(
+      'arguments' => array(
+        'node',
+      ),
+    ),
+    'moderation_comments_preview' => array(
+      'arguments' => array(
+        'node',
+      ),
+    ),
+    'moderation_comments_flagged_preview' => array(
+      'arguments' => array(
+        'node',
+      ),
+    ),
+    'moderation_item_comment' => array(
+      'arguments' => array(
+        'comment' => NULL,
+        'moderation' => NULL,
+        'node_title' => NULL,
+        'token' => NULL,
+      ),
+    ),
+    'moderation_item_flagged_comment' => array(
+      'arguments' => array(
+        'comment' => NULL,
+        'moderation' => NULL,
+        'node_title' => NULL,
+        'token' => NULL,
+        'flag' => NULL,
+      ),
+    ),
+    'moderation_item_node' => array(
+      'arguments' => array(
+        'node' => NULL,
+        'moderation' => NULL,
+        'token' => NULL,
+      ),
+    ),
+    'moderation_item_thread' => array(
+      'arguments' => array(
+        'node' => NULL,
+        'moderation' => NULL,
+        'token' => NULL,
+      ),
+    ),
+    'moderation_item_flag' => array(
+      'arguments' => array(
+        'node' => NULL,
+        'moderation' => NULL,
+        'token' => NULL,
+      ),
+    ),
+    'moderation_item_links' => array(
+      'arguments' => array(
+        'entity' => NULL,
+        'entity_type' => NULL,
+        'moderation' => NULL,
+        'token' => NULL,
+      ),
+    ),
+  );
+}
+
+function moderation_moderation_access_callback($arg) {
+  $access = (($arg == 'node'    AND user_access('access node queue')) ||
+             ($arg == 'comment' AND user_access('access comment queue')) ||
+             ($arg == 'thread'  AND user_access('access thread queue')) ||
+             ($arg == 'flag'    AND user_access('access flag queue')))
+            ? TRUE : FALSE;
+  return $access;
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function moderation_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
+  global $user;
+  switch ($op) {
+    case 'load':
+      $node->moderation = moderation_get_status('node', $node->nid);
+      break;
+    case 'update':
+      $status = moderation_get_status('node', $node->nid);
+      if ($status != $node->moderate) {
+        moderation_update_moderation('node', $node->nid, $node->moderate);
+        moderation_insert_moderation_log('node', $node->nid, $node->moderate, 'moderate', $user);
+      }
+      break;
+    case 'insert':
+      moderation_insert_moderation('node', $node->nid);
+      break;
+    case 'delete':
+      moderation_delete_moderation('node', $node->nid);
+      moderation_delete_moderation_log('node', $node->nid);
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_comment().
+ */
+function moderation_comment(&$a1, $op) {
+  global $user;
+  switch ($op) {
+    case 'view':
+      $comment->moderation = moderation_get_status('comment', $a1->cid);
+      break;
+    case 'insert':
+      moderation_insert_moderation('comment', $a1['cid']);
+      break;
+    case 'update':
+      $status = moderation_get_status('comment', $a1['cid'], 'moderate');
+      if ($status != $a1['moderate']) {
+        moderation_update_moderation('comment', $a1['cid'], $a1['moderate']);
+        moderation_insert_moderation_log('comment', $a1['cid'], $a1['moderate'], 'moderate', $user);
+      }
+      break;
+    case 'delete':
+      moderation_delete_moderation('comment', $a1->cid);
+      moderation_delete_moderation_log('comment', $a1->cid);
+      break;
+  }
+}
+
+function moderation_insert_moderation($obj_type, $obj_id, $status = 0) {
+  return db_query("INSERT INTO {moderation_moderation} (obj_type, obj_id, status) VALUES ('%s', %d, %d)", $obj_type, $obj_id, $status);
+}
+
+function moderation_update_moderation($obj_type, $obj_id, $status) {
+  return db_query("UPDATE {moderation_moderation} SET status = %d WHERE obj_type = '%s' AND obj_id = %d", $status, $obj_type, $obj_id);
+}
+
+function moderation_delete_moderation($obj_type, $obj_id) {
+  return db_query("DELETE FROM {moderation_moderation} WHERE obj_type = '%s' AND obj_id = %d", $obj_type, $obj_id);
+}
+
+function moderation_insert_moderation_log($obj_type, $obj_id, $status, $attribute = 'moderate', $user = NULL) {
+  return db_query("INSERT INTO {moderation} (obj_type, obj_id, uid, attribute, status, created) VALUES ('%s', %d, %d, '%s', %d, %d)", $obj_type, $obj_id, $user->uid, $attribute, $status, time());
+}
+
+function moderation_delete_moderation_log($obj_type, $obj_id) {
+  return db_query("DELETE FROM {moderation} (obj_type, obj_id, uid, ) VALUES ()", $obj_type, $obj_id);
+}
+
+function moderation_get_last($obj_type, $obj_id) {
+  $query = "SELECT m.*, u.name FROM {moderation} m
+              LEFT JOIN {users} u ON m.uid = u.uid
+              WHERE m.obj_type = '%s'
+                AND m.obj_id = %d
+              ORDER BY m.created DESC
+              LIMIT 1";
+  return db_fetch_object(db_query($query, $obj_type, $obj_id));
+}
+
+function moderation_get_status($obj_type, $obj_id) {
+  return db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_type = '%s' AND obj_id = %d", $obj_type, $obj_id));
+}
+
+function moderation_is_moderated_type($type) {
+  return in_array($type, variable_get('moderation_moderated_types', array()));
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function moderation_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id)  {
+    if (moderation_is_moderated_type($form['type']['#value'])) {
+      if (user_access('access node queue')) {
+        $form['options']['moderate'] = array(
+          '#type' => 'checkbox',
+          '#title' => t('Has been moderated'),
+          '#default_value' => $form['#node']->moderate,
+          '#weight' => 24,
+          '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_form_comment_form_alter().
+ */
+function moderation_form_comment_form_alter(&$form, &$form_state) {
+  if (user_access('access node queue')) {
+    $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='comment'", $form['cid']['#value']));
+      $form['admin']['moderate'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Has been moderated',
+        '#default_value' => $status,
+        '#weight' => -1,
+        '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
+      );
+  }
+}
+
+function moderation_log_message($attribute, $status, $type) {
+  switch ($attribute) {
+    case 'status':
+      if ($type == 'comment') {
+        $message = $status ? t('Unpublished') : t('Published');
+      }
+      else {
+        $message = $status ? t('Published') : t('Unpublished');
+      }
+      break;
+    case 'moderate':
+      $message = $status ? t('Moderated') : t('Unmoderated');
+      break;
+    case 'sticky':
+      $message = $status ? t('Made sticky') : t('Removed stickiness');
+      break;
+    case 'promote':
+      $message = $status ? t('Promoted') : t('Not promoted');
+      break;
+  }
+  return $message;
+}
+
+/**
+ *
+ */
+function moderation_comment_render($node) {
+  global $user;
+
+  $output = '';
+
+  // Pre-process variables.
+  $nid = $node->nid;
+  if (empty($nid)) {
+    $nid = 0;
+  }
+
+  $mode = _comment_get_display_setting('mode', $node);
+  $order = _comment_get_display_setting('sort', $node);
+
+  // Multiple comment view
+  $query = "SELECT c.cid as cid, c.pid, c.nid, c.subject, c.comment, c.format, c.timestamp, c.name, c.mail, c.homepage, u.uid, u.name AS registered_name, u.signature, u.signature_format, u.picture, u.data, c.thread, c.status FROM {comments} c
+              INNER JOIN {moderation_moderation} mm ON mm.obj_id = c.cid
+              INNER JOIN {users} u ON c.uid = u.uid
+              WHERE c.nid = %d
+                AND mm.obj_type = 'comment'
+                AND mm.status = 0";
+
+  $query_args = array($nid);
+  $query .= ' AND c.status = %d';
+  $query_args[] = COMMENT_PUBLISHED;
+
+  if ($order == COMMENT_ORDER_NEWEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' ORDER BY c.cid DESC';
+    }
+    else {
+      $query .= ' ORDER BY c.thread DESC';
+    }
+  }
+  elseif ($order == COMMENT_ORDER_OLDEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' ORDER BY c.cid';
+    }
+    else {
+      // See comment above. Analysis reveals that this doesn't cost too
+      // much. It scales much much better than having the whole comment
+      // structure.
+      $query .= ' ORDER BY SUBSTRING(c.thread, 1, (LENGTH(c.thread) - 1))';
+    }
+  }
+
+  // Start a form, for use with comment control.
+  $result = db_query(db_rewrite_sql($query, 'c', 'cid'), $query_args);
+
+  $divs = 0;
+  $num_rows = FALSE;
+  $comments = '';
+  drupal_add_css(drupal_get_path('module', 'comment') .'/comment.css');
+  while ($comment = db_fetch_object($result)) {
+    $indent_prefix = '';
+    $indent_suffix = '';
+    $comment = drupal_unpack($comment);
+    $comment->name = $comment->uid ? $comment->registered_name : $comment->name;
+    $comment->depth = count(explode('.', $comment->thread)) - 1;
+
+    if ($mode == COMMENT_MODE_THREADED_COLLAPSED || $mode == COMMENT_MODE_THREADED_EXPANDED) {
+      for ($i=0; $i<$comment->depth; $i++) {
+        $indent_prefix .= '<div class="indented">';
+        $indent_suffix .= '</div>';
+      }
+    }
+
+    $token = drupal_get_token('comment-'. $comment->cid);
+    $moderation = moderation_get_last('comment', $comment->cid);
+
+    $comments[] = array('data' =>
+      array(
+        array(
+          'data' => $indent_prefix . theme('moderation_item_comment', $comment, $moderation, $node, $token) . $indent_suffix,
+        ),
+      )
+    );
+
+    $num_rows = TRUE;
+  }
+
+  $comment_controls = variable_get('comment_controls_'. $node->type, COMMENT_CONTROLS_HIDDEN);
+  if ($num_rows && ($comment_controls == COMMENT_CONTROLS_ABOVE || $comment_controls == COMMENT_CONTROLS_ABOVE_BELOW)) {
+    $output .= drupal_get_form('comment_controls', $mode, $order, $comments_per_page);
+  }
+
+  $output .= theme('table', array(), $comments);
+  $output .= theme('pager', NULL, $comments_per_page, 0);
+
+  if ($num_rows && ($comment_controls == COMMENT_CONTROLS_BELOW || $comment_controls == COMMENT_CONTROLS_ABOVE_BELOW)) {
+    $output .= drupal_get_form('comment_controls', $mode, $order, $comments_per_page);
+  }
+  return $output;
+}
+
+/**
+ *
+ */
+function moderation_comment_flagged_render($node) {
+  global $user;
+
+  $output = '';
+
+  // Pre-process variables.
+  $nid = $node->nid;
+  if (empty($nid)) {
+    $nid = 0;
+  }
+
+  $mode = _comment_get_display_setting('mode', $node);
+  $order = _comment_get_display_setting('sort', $node);
+
+  // Multiple comment view
+  $flag_id = variable_get('moderation_thread_flag', '');
+  $query = "SELECT c.cid as cid, c.pid, c.nid, c.subject, c.comment, c.format, c.timestamp, c.name, c.mail, c.homepage, u.uid, u.name AS registered_name, u.signature, u.signature_format, u.picture, u.data, c.thread, c.status FROM {comments} c
+              INNER JOIN {flag_content} fc ON fc.content_id = c.cid
+              INNER JOIN {users} u ON c.uid = u.uid
+              WHERE c.nid = %d
+                AND fc.content_type = 'comment'
+                AND fc.fid = $flag_id";
+
+  $query_args = array($nid);
+  $query .= ' AND c.status = %d';
+  $query_args[] = COMMENT_PUBLISHED;
+
+  if ($order == COMMENT_ORDER_NEWEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' ORDER BY c.cid DESC';
+    }
+    else {
+      $query .= ' ORDER BY c.thread DESC';
+    }
+  }
+  elseif ($order == COMMENT_ORDER_OLDEST_FIRST) {
+    if ($mode == COMMENT_MODE_FLAT_COLLAPSED || $mode == COMMENT_MODE_FLAT_EXPANDED) {
+      $query .= ' ORDER BY c.cid';
+    }
+    else {
+      // See comment above. Analysis reveals that this doesn't cost too
+      // much. It scales much much better than having the whole comment
+      // structure.
+      $query .= ' ORDER BY SUBSTRING(c.thread, 1, (LENGTH(c.thread) - 1))';
+    }
+  }
+
+  // Start a form, for use with comment control.
+  $result = db_query(db_rewrite_sql($query, 'c', 'cid'), $query_args);
+
+  $divs = 0;
+  $num_rows = FALSE;
+  $comments = '';
+  drupal_add_css(drupal_get_path('module', 'comment') .'/comment.css');
+  while ($comment = db_fetch_object($result)) {
+    $indent_prefix = '';
+    $indent_suffix = '';
+    $comment = drupal_unpack($comment);
+    $comment->name = $comment->uid ? $comment->registered_name : $comment->name;
+    $comment->depth = count(explode('.', $comment->thread)) - 1;
+
+    if ($mode == COMMENT_MODE_THREADED_COLLAPSED || $mode == COMMENT_MODE_THREADED_EXPANDED) {
+      for ($i=0; $i<$comment->depth; $i++) {
+        $indent_prefix .= '<div class="indented">';
+        $indent_suffix .= '</div>';
+      }
+    }
+
+    $token = drupal_get_token('comment-'. $comment->cid);
+    $moderation = moderation_get_last('comment', $comment->cid);
+    $flag = flag_get_flag(NULL, $flag_id);
+
+    $comments[] = array('data' =>
+      array(
+        array(
+          'data' => $indent_prefix . theme('moderation_item_flagged_comment', $comment, $moderation, $node, $token, $flag) . $indent_suffix,
+        ),
+      )
+    );
+
+    $num_rows = TRUE;
+  }
+
+  $comment_controls = variable_get('comment_controls_'. $node->type, COMMENT_CONTROLS_HIDDEN);
+  if ($num_rows && ($comment_controls == COMMENT_CONTROLS_ABOVE || $comment_controls == COMMENT_CONTROLS_ABOVE_BELOW)) {
+    $output .= drupal_get_form('comment_controls', $mode, $order, $comments_per_page);
+  }
+
+  $output .= theme('table', array(), $comments);
+  $output .= theme('pager', NULL, $comments_per_page, 0);
+
+  if ($num_rows && ($comment_controls == COMMENT_CONTROLS_BELOW || $comment_controls == COMMENT_CONTROLS_ABOVE_BELOW)) {
+    $output .= drupal_get_form('comment_controls', $mode, $order, $comments_per_page);
+  }
+  return $output;
+}
+
+/**
+ * Display a node preview for display during node creation and editing.
+ *
+ * @param $node
+ *   The node object which is being previewed.
+ */
+function theme_moderation_node_preview($node) {
+  $output = '<div class="preview">';
+  if ($node->teaser && $node->teaser != $node->body) {
+    $output .= '<h3>'. t('Preview trimmed version') .'</h3>';
+    $output .= node_view(drupal_clone($node), 1, FALSE, 0);
+    $output .= '<h3>'. t('Preview full version') .'</h3>';
+    $output .= node_view($node, 0, FALSE, 0);
+  }
+  else {
+    $output .= node_view($node, 0, FALSE, 0);
+  }
+
+  $output .= "</div>\n";
+
+  return $output;
+}
+
+/**
+ * Display a node preview for display during node creation and editing.
+ *
+ * @param $node
+ *   The node object which is being previewed.
+ */
+function theme_moderation_comments_preview($node) {
+  $output = '<div class="thread-preview moderation-thread">';
+  $output .= '<h3>'. t('Preview comments') .'</h3>';
+  $output .= moderation_comment_render($node);
+  $output .= "</div>\n";
+  return $output;
+}
+
+/**
+ * Display a node preview for display during node creation and editing.
+ *
+ * @param $node
+ *   The node object which is being previewed.
+ */
+function theme_moderation_comments_flagged_preview($node) {
+  $output = '<div class="thread-preview moderation-flag">';
+  $output .= '<h3>'. t('Preview comments') .'</h3>';
+  $output .= moderation_comment_flagged_render($node);
+  $output .= "</div>\n";
+  return $output;
+}
+
+/**
+ * Theme comment moderation item
+ */
+function theme_moderation_item_comment($comment, $moderation, $node, $token) {
+  $output = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
+  $output .= '<div id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
+  $output .= format_date($comment->timestamp, 'small') .' ';
+  $output .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'))));
+  $output .= theme('mark', node_mark($comment->cid, $comment->changed));
+  if ($moderation) {
+    $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
+  }
+  $output .= '</div>';
+  $output .= '</div>';
+
+  $output .= '<div id="moderation-info-'. $comment->cid .'" class="moderation-info clear-block">';
+  $output .= '  <span id="moderation-parent-'. $comment->cid .'" class="moderation-attribute moderation-parent">'. t('By !user on @type !link', array('!user' => theme('username', $comment), '@type' => node_get_types('name', $node), '!link' => l(truncate_utf8($node->title, 50), 'node/'. $comment->nid, array('attributes' => array('title' => check_plain($node->title)))))) .'</span>';
+  $output .= '  <div class="moderation-attribute-wrapper clear-block">';
+  $output .= '    <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('query' => drupal_get_destination())) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-moderate">'. l(($comment->moderation ? t('unmoderate') : t('moderate')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('publish') : t('unpublish')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '  </div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Theme comment moderation item
+ */
+function theme_moderation_item_flagged_comment($comment, $moderation, $node, $token, $flag) {
+  $output = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
+  $output .= '<div id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
+  $output .= format_date($comment->timestamp, 'small') .' ';
+  $output .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'))));
+  $output .= theme('mark', node_mark($comment->cid, $comment->changed));
+  if ($moderation) {
+    $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
+  }
+  $output .= '</div>';
+  $output .= '</div>';
+
+  $output .= '<div id="moderation-info-'. $comment->cid .'" class="moderation-info clear-block">';
+  $output .= '  <span id="moderation-parent-'. $comment->cid .'" class="moderation-attribute moderation-parent">'. t('By !user on @type !link', array('!user' => theme('username', $comment), '@type' => node_get_types('name', $node), '!link' => l(truncate_utf8($node->title, 50), 'node/'. $comment->nid, array('attributes' => array('title' => check_plain($node->title)))))) .'</span>';
+  $output .= '  <div class="moderation-attribute-wrapper clear-block">';
+  $output .= '    <span id="moderation-operations-'. $comment->cid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'comment/edit/'. $comment->cid, array('query' => drupal_get_destination())) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-moderate">'. l(($comment->moderation ? t('unmoderate') : t('moderate')), 'moderation/comment/'. $comment->cid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $comment->cid, 'class' => 'moderation-moderate-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-status">'. l(($comment->status ? t('publish') : t('unpublish')), 'moderation/comment/'. $comment->cid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $comment->cid, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-flag">'. flag_create_link($flag->name, $comment->cid) .'</span>';
+  $output .= '  </div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Theme node moderation item
+ */
+function theme_moderation_item_node($node, $moderation, $token) {
+  $output = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
+  $output .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
+  $output .= format_date($node->created, 'small') .' ';
+  $output .= l($node->title, 'moderation/node/'. $node->nid .'/get/preview');
+  $output .= theme('mark', node_mark($node->nid, $node->changed));
+  if ($moderation) {
+    $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
+  }
+  $output .= '</div>';
+  $output .= '</div>';
+
+  $output .= '<div id="moderation-info-'. $node->nid .'" class="moderation-info clear-block">';
+  $output .= '  <span id="moderation-meta-'. $node->nid .'" class="moderation-attribute moderation-meta">'. t('@type by !user', array('@type' => node_get_types('name', $node), '!user' => theme('username', $node))) .'</span>';
+  $output .= '  <div class="moderation-attribute-wrapper clear-block">';
+  $output .= '    <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('query' => drupal_get_destination())) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-moderate">'. l(($node->moderation ? t('unmoderate') : t('moderate')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('remove stickiness')    : t('make sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('demote')  : t('promote')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('unpublish') : t('publish')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '  </div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Theme thread moderation item
+ */
+function theme_moderation_item_thread($node, $moderation, $token) {
+  $output = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
+  $output .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
+  $output .= format_date($node->created, 'small') .' ';
+  $output .= l($node->title, 'moderation/thread/'. $node->nid .'/get/preview');
+  $output .= theme('mark', node_mark($node->nid, $node->changed));
+  if ($moderation) {
+    $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
+  }
+  $output .= '</div>';
+  $output .= '</div>';
+
+  $output .= '<div id="moderation-info-'. $node->nid .'" class="moderation-info clear-block">';
+  $output .= '  <span id="moderation-meta-'. $node->nid .'" class="moderation-attribute moderation-meta">'. t('@type by !user', array('@type' => node_get_types('name', $node), '!user' => theme('username', $node))) .'</span>';
+  $output .= '  <div class="moderation-attribute-wrapper clear-block">';
+  $output .= '    <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('query' => drupal_get_destination())) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-moderate">'. l(($node->moderation ? t('unmoderate') : t('moderate')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('remove stickiness')    : t('make sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('demote')  : t('promote')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('unpublish') : t('publish')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '  </div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Theme flag moderation item
+ */
+function theme_moderation_item_flag($node, $moderation, $token) {
+  $output = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
+  $output .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
+  $output .= format_date($node->created, 'small') .' ';
+  $output .= l($node->title, 'moderation/flag/'. $node->nid .'/get/preview');
+  $output .= theme('mark', node_mark($node->nid, $node->changed));
+  if ($moderation) {
+    $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
+  }
+  $output .= '</div>';
+  $output .= '</div>';
+
+  $output .= '<div id="moderation-info-'. $node->nid .'" class="moderation-info clear-block">';
+  $output .= '  <span id="moderation-meta-'. $node->nid .'" class="moderation-attribute moderation-meta">'. t('@type by !user', array('@type' => node_get_types('name', $node), '!user' => theme('username', $node))) .'</span>';
+  $output .= '  <div class="moderation-attribute-wrapper clear-block">';
+  $output .= '    <span id="moderation-operations-'. $node->nid .'" class="moderation-attribute moderation-operations">'. l(t('edit'), 'node/'. $node->nid .'/edit', array('query' => drupal_get_destination())) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-moderate">'. l(($node->moderation ? t('unmoderate') : t('moderate')), 'moderation/node/'. $node->nid .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $node->nid, 'class' => 'moderation-moderate-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-sticky">'. l(($node->sticky   ? t('remove stickiness')    : t('make sticky')), 'moderation/node/'. $node->nid .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $node->nid, 'class' => 'moderation-sticky-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-promote">'. l(($node->promote  ? t('demote')  : t('promote')), 'moderation/node/'. $node->nid .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $node->nid, 'class' => 'moderation-promote-link'))) .'</span>';
+  $output .= '    <span class="moderation-attribute moderation-status">'. l(($node->status   ? t('unpublish') : t('publish')), 'moderation/node/'. $node->nid .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $node->nid, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '  </div>';
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Action links for moderation.
+ *
+ * @TODO
+ *   Find a better way to have different edit links for different entity types.
+ */
+function theme_moderation_item_links($entity, $entity_type, $moderation, $token) {
+  $output = '<div class="moderation-attribute-wrapper clear-block">';
+
+  if ($entity_type == 'node') {
+    $edit_link = $entity_type . '/' . $entity->id .'/edit';
+  }
+  else {
+    $edit_link = $entity_type . '/edit' . '/' . $entity->id;
+  }
+  $output .= '  <span id="moderation-operations-'. $entity->id .'" class="moderation-attribute moderation-operations">'. l(t('edit'), $edit_link, array('query' => drupal_get_destination())) .'</span>';
+
+  $output .= '  <span class="moderation-attribute moderation-moderate">'. l(($moderation ? t('unmoderate') : t('moderate')), 'moderation/'. $entity_type . '/' . $entity->id .'/set/moderate', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-moderate-link-'. $entity->id, 'class' => 'moderation-moderate-link'))) .'</span>';
+  if ($entity_type == 'node') {
+    $output .= '  <span class="moderation-attribute moderation-sticky">'. l(($entity->sticky   ? t('remove stickiness')    : t('make sticky')), 'moderation/'. $entity_type . '/' . $entity->id .'/set/sticky', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-sticky-link-'. $entity->id, 'class' => 'moderation-sticky-link'))) .'</span>';
+    $output .= '  <span class="moderation-attribute moderation-promote">'. l(($entity->promote  ? t('demote')  : t('promote')), 'moderation/'. $entity_type . '/' . $entity->id .'/set/promote', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-promote-link-'. $entity->id, 'class' => 'moderation-promote-link'))) .'</span>';
+  }
+  if ($entity_type == 'node') {
+    $status = $entity->status ? t('unpublish') : t('publish');
+  }
+  else {
+    $status = !$entity->status ? t('unpublish') : t('publish');
+  }
+  $output .= '  <span class="moderation-attribute moderation-status">'. l($status, 'moderation/'. $entity_type . '/' . $entity->id .'/set/status', array('query' => drupal_get_destination() .'&token='. $token, 'attributes' => array('id' => 'moderation-status-link-'. $entity->id, 'class' => 'moderation-status-link'))) .'</span>';
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function moderation_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'moderation') . '/includes',
+  );
+}

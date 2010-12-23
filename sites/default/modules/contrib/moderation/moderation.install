@@ -1,0 +1,156 @@
+<?php
+// $Id: moderation.install,v 1.1.4.6 2010/07/09 07:53:07 sanduhrs Exp $
+
+/**
+ * @file
+ * Moderation - un/install procedures
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+/**
+ * Implementation of HOOK_install().
+ * TODO: Use drupal batch api http://api.drupal.org/api/group/batch/6
+ */
+function moderation_install() {
+
+  drupal_install_schema('moderation');
+  variable_set('moderation_node_types', array('page', 'story'));
+  variable_set('moderation_thread_types', array('blog'));
+
+  $moderated = 0; // 1, 0
+  $obj_types = array('node', 'comment');
+  $start     = 0;
+
+  foreach ($obj_types as $obj_type) {
+    $start = variable_get('moderation_install_last_'. $obj_type .'_id', 0);
+
+    if ($obj_type == 'node') {
+      $result = db_query("SELECT nid as id FROM {node} WHERE nid>=%d ORDER BY nid ASC", $start);
+    }
+    elseif ($obj_type == 'comment') {
+      $result = db_query("SELECT cid as id FROM {comments} WHERE cid>=%d ORDER BY cid ASC", $start);
+    }
+
+    while ($row = db_fetch_object($result)) {
+      db_query("INSERT INTO {moderation_moderation} (obj_type, obj_id, status) VALUES ('%s', %d, %d)", $obj_type, $row->id, $moderated);
+      variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
+    }
+  }
+}
+
+/**
+ * Implementation of HOOK_schema().
+ */
+function moderation_schema() {
+  $schema['moderation'] = array(
+    'fields' => array(
+      'obj_id' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'obj_type' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'uid' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'attribute' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
+      'created' => array(
+        'description' => '',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+    ),
+    'indexes' => array(
+      'obj_id' => array('obj_id'),
+      'obj_type' => array('obj_type'),
+      'uid' => array('uid'),
+    ),
+  );
+  $schema['moderation_moderation'] = array(
+    'fields' => array(
+      'obj_id' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0),
+      'obj_type' => array(
+        'description' => '',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'status' => array(
+        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1),
+    ),
+    'indexes' => array(
+      'obj_id' => array('obj_id'),
+      'obj_type' => array('obj_type'),
+      'status' => array('status'),
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of HOOK_uninstall().
+ */
+function moderation_uninstall() {
+  drupal_uninstall_schema('moderation');
+  db_query("DELETE FROM {variable} WHERE name LIKE 'moderation_%'");
+}
+
+/**
+ * Implementation of HOOK_update_N().
+ */
+function moderation_update_6001() {
+  $ret = array();
+  variable_set('moderation_moderated_types', array('page', 'story', 'blog'));
+  return $ret;
+}
+
+/**
+ * Implementation of HOOK_update_N().
+ */
+function moderation_update_6100() {
+  $sql = "UPDATE {variable} SET name = 'moderation_content_types' WHERE name = 'moderation_moderated_types'";
+  return update_sql($sql);
+}
+
+/**
+ * Implementation of HOOK_update_N().
+ */
+function moderation_update_6101() {
+  $ret = array();
+  $moderation_content_types = variable_get('moderation_content_types', '');
+  variable_set('moderation_node_types', $moderation_content_types);
+  variable_set('moderation_thread_types', $moderation_content_types);
+
+  $sql = "DELETE FROM {variable} WHERE name = 'moderation_content_types'";
+  $ret = update_sql($sql);
+  return $ret;
+}

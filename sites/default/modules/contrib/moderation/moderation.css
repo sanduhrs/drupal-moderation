@@ -1,0 +1,85 @@
+.moderation-content div.messages {
+  display: block;
+}
+
+.moderation-queue .throbbing {
+  background-image: url(/misc/throbber.gif);
+  background-position: 100% -20px;
+  background-repeat: no-repeat;
+  padding-right: 20px;
+}
+
+.moderation-messages {
+  border-color:#C7F2C8;
+  color:#33AA33;
+  background-color:#FFFFFF;
+  border:1px solid #B8D3E5;
+  margin:0.75em 0pt;
+  padding:0.5em 1em
+}
+
+.moderation-preview {
+  display: none;
+}
+
+.moderation-moderation {
+  float:right;
+}
+
+.moderation-attribute {
+  padding: 0 10px;
+  float:right;
+}
+
+.moderation-meta {
+  float:left;
+}
+
+.moderation-username,
+.moderation-name {
+  padding-left:0;
+  float: left;
+}
+
+.moderation-parent {
+  padding-left:0;
+  float: left;
+  display:block;
+}
+
+.moderation-preview .comment {
+  border-top:none;
+}
+
+.moderation-preview div#comments {
+  margin:0;
+  padding:0;
+}
+
+.moderation-preview div#comments h2.comments {
+  margin:0;
+  padding:0;
+  background:none;
+  clear:both;
+}
+.moderation-queue td {
+  padding-top:10px;
+  padding-bottom:10px;
+  }
+  
+.moderation-queue .moderation-title a {
+  font-weight:bold;
+  }
+  
+.moderation-queue .moderation-operations a,
+.moderation-queue .moderation-moderate a,
+.moderation-queue .moderation-sticky a,
+.moderation-queue .moderation-promote a,
+.moderation-queue .moderation-status a {
+  font-size:90%;
+}
+
+.moderation-queue .thread-preview {
+  background-color:#FCFCE8;
+  padding: 10px;
+}
