@@ -8,7 +8,7 @@
   .after('<div class="moderation-preview"></div>')
   .click(function() {
     var link = $(this);
-    var obj_id = $(this).siblings('div.moderation-preview-attributes').attr('id');
+    var obj_id = $(this).siblings('div.moderation-preview-attributes').attr('entity-id');
     var type = $(this).siblings('div.moderation-preview-attributes').attr('type');
 
     var preview = $(this).siblings('div.moderation-preview');

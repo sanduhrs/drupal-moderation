@@ -576,8 +576,9 @@ function theme_moderation_comments_flagged_preview($node) {
  * Theme comment moderation item
  */
 function theme_moderation_item_comment($comment, $moderation, $node, $token) {
+  dsm(123);
   $output = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
-  $output .= '<div id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
+  $output .= '<div type="comment" entity-id="' . $comment->cid . '" id="moderation-title-'. $comment->cid .'" class="moderation-title title">';
   $output .= format_date($comment->timestamp, 'small') .' ';
   $output .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'))));
   $output .= theme('mark', node_mark($comment->cid, $comment->changed));
@@ -630,7 +631,7 @@ function theme_moderation_item_flagged_comment($comment, $moderation, $node, $to
  */
 function theme_moderation_item_node($node, $moderation, $token) {
   $output = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
-  $output .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
+  $output .= '<div type="node" entity-id="' . $node->nid . '" id="moderation-title-'. $node->nid .'" class="moderation-title title">';
   $output .= format_date($node->created, 'small') .' ';
   $output .= l($node->title, 'moderation/node/'. $node->nid .'/get/preview');
   $output .= theme('mark', node_mark($node->nid, $node->changed));
@@ -658,7 +659,7 @@ function theme_moderation_item_node($node, $moderation, $token) {
  */
 function theme_moderation_item_thread($node, $moderation, $token) {
   $output = '<div id="moderation-content-'. $node->nid .'" class="moderation-content clear-block container-inline">';
-  $output .= '<div id="moderation-title-'. $node->nid .'" class="moderation-title title">';
+  $output .= '<div type="comment" entity-id="' . $node->cid . '" id="moderation-title-'. $node->nid .'" class="moderation-title title">';
   $output .= format_date($node->created, 'small') .' ';
   $output .= l($node->title, 'moderation/thread/'. $node->nid .'/get/preview');
   $output .= theme('mark', node_mark($node->nid, $node->changed));

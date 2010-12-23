@@ -45,7 +45,7 @@ class moderation_handler_field_comment_subject extends views_handler_field_comme
   function advanced_render($values) {
     $this->last_render = parent::advanced_render($values);
     if (!empty($this->options['ajax_preview'])) {
-      $this->last_render .= '<div type="comment" id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes hidden"></div>';
+      $this->last_render .= '<div type="comment" entity-id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes hidden"></div>';
     }
 
     return $this->last_render;

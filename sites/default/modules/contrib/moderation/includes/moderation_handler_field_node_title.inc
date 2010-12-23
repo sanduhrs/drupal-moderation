@@ -55,7 +55,7 @@ class moderation_handler_field_node_title extends views_handler_field_node {
     $this->last_render = parent::advanced_render($values);
     if (!empty($this->options['ajax_preview'])) {
       $moderation_type = $this->definition['moderation type'];
-      $this->last_render .= '<div type="' . $moderation_type . '" id="' . $values->{$this->aliases['nid']} . '" class="moderation-preview-attributes hidden"></div>';
+      $this->last_render .= '<div type="' . $moderation_type . '" entity-id="' . $values->{$this->aliases['nid']} . '" class="moderation-preview-attributes hidden"></div>';
     }
 
     return $this->last_render;
