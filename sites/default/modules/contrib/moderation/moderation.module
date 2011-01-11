@@ -14,7 +14,7 @@
  */
 function moderation_init() {
   //TODO: load in view
-  drupal_add_js(drupal_get_path('module', 'moderation') . '/moderation.css');
+  drupal_add_css(drupal_get_path('module', 'moderation') . '/moderation.css');
 }
 
 /**
