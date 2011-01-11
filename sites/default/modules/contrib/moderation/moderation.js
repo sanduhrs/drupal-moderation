@@ -9,7 +9,7 @@ Drupal.moderationPreview = function() {
     var link = $(this);
 
 	var preview = $('#moderation-preview-'+obj_id);
-    var url = window.location.protocol+'//'+window.location.hostname+$(this).attr("href");
+    var url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+$(this).attr("href");
     if (preview.html().length == 0) {
       link.addClass('throbbing');
 
