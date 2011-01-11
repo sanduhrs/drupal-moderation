@@ -12,7 +12,7 @@
     var type = $(this).siblings('div.moderation-preview-attributes').attr('type');
 
     var preview = $(this).siblings('div.moderation-preview');
-    var url = window.location.protocol+'//'+window.location.hostname+Drupal.settings.basePath+"?q=moderation/" + type + "/" + obj_id + "/get/preview";
+    var url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath+"?q=moderation/" + type + "/" + obj_id + "/get/preview";
     console.log(url);
     if (preview.html().length == 0) {
       link.addClass('throbbing');
@@ -33,7 +33,7 @@
     preview.toggle();
 
     $.ajax({
-      url: window.location.protocol+'//'+window.location.hostname+Drupal.settings.basePath+"?q=moderation/" + type + "/"+obj_id+"/get/moderate&js=1",
+      url: window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath+"?q=moderation/" + type + "/"+obj_id+"/get/moderate&js=1",
       dataType: "json",
       success: function(status) {
         preview.find('.moderation-messages').remove();
@@ -56,7 +56,7 @@ Drupal.moderationButton = function() {
   var id = $(this).attr("id");
   var type = id.split('-')[1]
   var obj_id = id.split('-')[3];
-  var url = window.location.protocol+'//'+window.location.hostname+$(this).attr("href");
+  var url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath+$(this).attr("href");
   var text = {
     'status': {0: Drupal.t('publish'), 1: Drupal.t('unpublish')},
     'promote': {0: Drupal.t('promote'), 1: Drupal.t('demote')},
