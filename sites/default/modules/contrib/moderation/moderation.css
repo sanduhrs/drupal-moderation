@@ -9,6 +9,14 @@
   padding-right: 20px;
 }
 
+
+.moderation-attribute .throbbing {
+  background-image: url(/misc/throbber.gif);
+  background-position: 100% -20px;
+  background-repeat: no-repeat;
+  padding-right: 20px;
+}
+
 .moderation-messages {
   border-color:#C7F2C8;
   color:#33AA33;
@@ -20,7 +28,11 @@
 
 .moderation-preview {
   display: none;
+  border-left:40px solid #d4ebfa;
+  padding-left:2px;
 }
+
+
 
 .moderation-moderation {
   float:right;
@@ -83,3 +95,33 @@
   background-color:#FCFCE8;
   padding: 10px;
 }
+
+.moderation-attribute-wrapper {
+  font-size:90%;
+  }
+
+
+/* Node Moderation */
+
+
+/* Comment Moderation */
+
+.view-comments .views-field-timestamp,
+.view-Nodes .views-field-created {
+  font-size:0.9em;
+  }
+
+.view-comments .views-field-subject .field-content,
+.view-Nodes .views-field-title .field-content {
+  font-weight:bold;
+  }
+  
+.view-comments .views-row,
+.view-Nodes .views-row {
+  padding-top:10px;
+  border-bottom:1px solid #B8D3E5;
+  }
+  
+.moderation-preview .preview {
+  font-weight:normal;
+  } 
