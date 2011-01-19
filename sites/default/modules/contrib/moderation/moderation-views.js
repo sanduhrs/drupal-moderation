@@ -13,7 +13,7 @@
 
     var preview = $(this).siblings('div.moderation-preview');
     var url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath+"?q=moderation/" + type + "/" + obj_id + "/get/preview";
-    console.log(url);
+
     if (preview.html().length == 0) {
       link.addClass('throbbing');
 

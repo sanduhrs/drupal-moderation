@@ -42,16 +42,16 @@ function moderation_views_data_alter(&$data) {
  * Implements hook_views_data().
  */
 function moderation_views_data() {
-//   $data['moderation']['table']['group'] = t('Moderation');
-//   $data['moderation']['table']['join']['node'] = array(
-//   );
-//   $data['moderation']['links'] = array(
-//     'title' => t('Moderation links'),
-//     'field' => array(
-//       'handler' => 'moderation_handler_field_moderation_links',
-//     ),
-//   );
-
+  $data['moderation']['table']['group']  = t('Moderation');
+  $data['moderation']['table']['join']['node'] = array(
+    'left_field' => 'nid',
+    'field' => 'obj_id',
+    'extra' => array(
+      'field' => 'obj_type',
+      'operator' => '=',
+      'value' => 'node',
+    ),
+  );
   return $data;
 }
 
