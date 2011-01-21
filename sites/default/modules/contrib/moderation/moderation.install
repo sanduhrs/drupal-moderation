@@ -14,30 +14,16 @@
  * TODO: Use drupal batch api http://api.drupal.org/api/group/batch/6
  */
 function moderation_install() {
-
   drupal_install_schema('moderation');
-  variable_set('moderation_node_types', array('page', 'story'));
-  variable_set('moderation_thread_types', array('blog'));
-
-  $moderated = 0; // 1, 0
-  $obj_types = array('node', 'comment');
-  $start     = 0;
-
-  foreach ($obj_types as $obj_type) {
-    $start = variable_get('moderation_install_last_'. $obj_type .'_id', 0);
-
-    if ($obj_type == 'node') {
-      $result = db_query("SELECT nid as id FROM {node} WHERE nid>=%d ORDER BY nid ASC", $start);
-    }
-    elseif ($obj_type == 'comment') {
-      $result = db_query("SELECT cid as id FROM {comments} WHERE cid>=%d ORDER BY cid ASC", $start);
-    }
-
-    while ($row = db_fetch_object($result)) {
-      db_query("INSERT INTO {moderation_moderation} (obj_type, obj_id, status) VALUES ('%s', %d, %d)", $obj_type, $row->id, $moderated);
-      variable_set('moderation_install_last_'. $obj_type .'_id', $row->id);
-    }
-  }
+  $batch = array(
+    'title' => t('Importing'),
+    'operations' => array(
+      array('moderation_batch_import', array()),
+    ),
+    'finished' => 'moderation_batch_import_finished',
+    'file' => drupal_get_path('module', 'moderation') . '/includes/batch.moderation.inc',
+  );
+  batch_set($batch);
 }
 
 /**
@@ -87,32 +73,24 @@ function moderation_schema() {
       'uid' => array('uid'),
     ),
   );
-  $schema['moderation_moderation'] = array(
+  $schema['moderation_comment_status'] = array(
+    'description' => '',
     'fields' => array(
-      'obj_id' => array(
+      'cid' => array(
         'description' => '',
         'type' => 'int',
-        'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0),
-      'obj_type' => array(
-        'description' => '',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => ''),
+      ),
       'status' => array(
-        'description' => 'Boolean indicating whether the node is published (visible to non-administrators).',
+        'description' => '',
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 1),
+        'default' => 0,
+      ),
     ),
-    'indexes' => array(
-      'obj_id' => array('obj_id'),
-      'obj_type' => array('obj_type'),
-      'status' => array('status'),
-    ),
+    'primary key' => array('cid'),
   );
+
   return $schema;
 }
 
@@ -125,7 +103,7 @@ function moderation_uninstall() {
 }
 
 /**
- * Implementation of HOOK_update_N().
+ * Implementation of HOOK_update_6001().
  */
 function moderation_update_6001() {
   $ret = array();
@@ -134,7 +112,7 @@ function moderation_update_6001() {
 }
 
 /**
- * Implementation of HOOK_update_N().
+ * Implementation of HOOK_update_6100().
  */
 function moderation_update_6100() {
   $sql = "UPDATE {variable} SET name = 'moderation_content_types' WHERE name = 'moderation_moderated_types'";
@@ -142,7 +120,7 @@ function moderation_update_6100() {
 }
 
 /**
- * Implementation of HOOK_update_N().
+ * Implementation of HOOK_update_6101().
  */
 function moderation_update_6101() {
   $ret = array();
@@ -154,3 +132,25 @@ function moderation_update_6101() {
   $ret = update_sql($sql);
   return $ret;
 }
+
+/**
+ * Implement HOOK_update_6102().
+ */
+function moderation_update_6102() {
+  $ret = array();
+  $schema = moderation_schema();
+
+  update_sql("DELETE FROM {moderation_moderation} WHERE obj_type = 'node'");
+  db_drop_field($ret, 'moderation_moderation', 'obj_type');
+  db_drop_index($ret, 'moderation_moderation', 'obj_id');
+
+  $spec = $schema['moderation_comment_status']['fields']['cid'];
+  $new_keys = array('primary key' => $schema['moderation_comment_status']['primary key']);
+  db_change_field($ret, 'moderation_moderation', 'obj_id', 'cid', $spec, $new_keys);
+  $spec = $schema['moderation_comment_status']['fields']['status'];
+  $new_keys = array();
+  db_change_field($ret, 'moderation_moderation', 'status', 'status', $spec, $new_keys);
+  db_rename_table($ret, 'moderation_moderation', 'moderation_comment_status');
+  return $ret;
+}
+

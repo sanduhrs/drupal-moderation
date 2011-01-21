@@ -10,7 +10,17 @@
  */
 
 /**
- * Implement hook_init().
+ * Implements hook_views_api().
+ */
+function moderation_views_api() {
+  return array(
+    'api' => 2.0,
+    'path' => drupal_get_path('module', 'moderation') . '/includes',
+  );
+}
+
+/**
+ * Implement HOOK_init().
  */
 function moderation_init() {
   //TODO: load in view
@@ -18,74 +28,10 @@ function moderation_init() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implement HOOK_menu().
  */
 function moderation_menu() {
   $items = array();
-  $items['node/%/log'] = array(
-    'title' => 'Log',
-    'page callback' => 'moderation_log',
-    'page arguments' => array('node', 1),
-    'access arguments' => array('access node queue'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-  );
-  $items['admin/content/moderation'] = array(
-    'title' => 'Moderation',
-    'page callback' => 'moderation_queue',
-    'access arguments' => array('access thread queue'),
-    'type' => MENU_NORMAL_ITEM,
-    'description' => 'Moderate nodes and comments in a combined view.',
-    'file' => 'moderation.moderation.inc',
-  );
-  $items['admin/content/moderation-flag'] = array(
-    'title' => 'Moderation Flagged',
-    'page callback' => 'moderation_flag_queue',
-    'access arguments' => array('access flag queue'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-  );
-  $items['admin/content/node/moderation'] = array(
-    'title' => 'Moderation',
-    'page callback' => 'moderation_node_queue',
-    'access arguments' => array('access node queue'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-  );
-  $items['admin/content/node/log'] = array(
-    'title' => 'Log',
-    'page callback' => 'moderation_log',
-    'access arguments' => array('access node queue'),
-    'page arguments' => array('node'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-    'weight' => 1,
-  );
-  $items['admin/content/comment/moderation'] = array(
-    'title' => 'Moderation',
-    'page callback' => 'moderation_comment_queue',
-    'access arguments' => array('access comment queue'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-  );
-  $items['admin/content/comment/log'] = array(
-    'title' => 'Log',
-    'page callback' => 'moderation_log',
-    'page arguments' => array('comment'),
-    'access arguments' => array('access comment queue'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'moderation.moderation.inc',
-    'weight' => 1,
-  );
-
-  $items['admin/settings/moderation'] = array(
-    'title' => 'Moderation',
-    'description' => 'Configure the thread, node and comment moderation queue.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('moderation_admin_settings'),
-    'access arguments' => array('administer moderation'),
-    'file' => 'moderation.admin.inc',
-  );
   $items['moderation/%/%/%/%'] = array(
     'page callback' => 'moderation_callback_switch',
     'page arguments' => array(1, 2, 3, 4),
@@ -94,19 +40,25 @@ function moderation_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'moderation.pages.inc',
   );
-
   return $items;
 }
 
 /**
- * Implement hook_perm().
+ * Implement HOOK_perm().
  */
 function moderation_perm() {
-  return array('administer moderation', 'access thread queue', 'access node queue', 'access flag queue', 'access comment queue');
+  return array(
+    'administer moderation',
+    'moderate content',
+    'access thread queue',
+    'access node queue',
+    'access flag queue',
+    'access comment queue',
+  );
 }
 
 /**
- * Implementation of hook_theme().
+ * Implement HOOK_theme().
  */
 function moderation_theme() {
   return array(
@@ -174,36 +126,28 @@ function moderation_theme() {
   );
 }
 
+/**
+ * Access callback
+ */
 function moderation_moderation_access_callback($arg) {
-  $access = (($arg == 'node'    AND user_access('access node queue')) ||
-             ($arg == 'comment' AND user_access('access comment queue')) ||
-             ($arg == 'thread'  AND user_access('access thread queue')) ||
-             ($arg == 'flag'    AND user_access('access flag queue')))
-            ? TRUE : FALSE;
-  return $access;
+  $args = array('node', 'comment', 'thread', 'flag');
+  return (in_array($arg, $args) && user_access('moderate content')) ? TRUE : FALSE;
 }
 
 /**
- * Implementation of hook_nodeapi().
+ * Implement HOOK_nodeapi().
  */
 function moderation_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   global $user;
   switch ($op) {
-    case 'load':
-      $node->moderation = moderation_get_status('node', $node->nid);
-      break;
-    case 'update':
-      $status = moderation_get_status('node', $node->nid);
+    case 'presave':
+      $status = moderation_get_status('node', $node->nid, 'moderate');
       if ($status != $node->moderate) {
         moderation_update_moderation('node', $node->nid, $node->moderate);
         moderation_insert_moderation_log('node', $node->nid, $node->moderate, 'moderate', $user);
       }
       break;
-    case 'insert':
-      moderation_insert_moderation('node', $node->nid);
-      break;
     case 'delete':
-      moderation_delete_moderation('node', $node->nid);
       moderation_delete_moderation_log('node', $node->nid);
       break;
   }
@@ -235,26 +179,104 @@ function moderation_comment(&$a1, $op) {
   }
 }
 
+
+/**
+ * Implement HOOK_form_alter().
+ */
+function moderation_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id)  {
+    if (user_access('moderate content')) {
+      $form['options']['moderate'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Has been moderated'),
+        '#default_value' => $form['#node']->moderate,
+      );
+    }
+  }
+}
+
+/**
+ * Implement HOOK_form_comment_form_alter().
+ */
+function moderation_form_comment_form_alter(&$form, &$form_state) {
+  if (user_access('moderate content')) {
+    $status = db_result(db_query("SELECT status FROM {moderation_comment_status} WHERE cid=%d", $form['cid']['#value']));
+      $form['admin']['moderate'] = array(
+        '#type' => 'checkbox',
+        '#title' => 'Has been moderated',
+        '#default_value' => $status,
+        '#weight' => -1,
+      );
+  }
+}
+
+/* Helper functions */
+
+/**
+ *
+ */
 function moderation_insert_moderation($obj_type, $obj_id, $status = 0) {
-  return db_query("INSERT INTO {moderation_moderation} (obj_type, obj_id, status) VALUES ('%s', %d, %d)", $obj_type, $obj_id, $status);
+  switch ($obj_type) {
+    case 'node':
+      // For your convinience
+      $query = "UPDATE {node} SET status = %d WHERE nid = %d";
+      break;
+    case 'comment':
+      $query = "INSERT INTO {moderation_comment_status} (cid, status) VALUES (%d, %d)";
+      break;
+   }
+   return db_query($query, $obj_id, $status);
 }
 
-function moderation_update_moderation($obj_type, $obj_id, $status) {
-  return db_query("UPDATE {moderation_moderation} SET status = %d WHERE obj_type = '%s' AND obj_id = %d", $status, $obj_type, $obj_id);
+/**
+ *
+ */
+function moderation_update_moderation($obj_type, $obj_id, $status = 0) {
+  switch ($obj_type) {
+    case 'node':
+      $query = "UPDATE {node} SET moderate = %d WHERE nid = %d";
+      break;
+    case 'comment':
+      $query = "UPDATE {moderation_comment_status} SET status = %d WHERE cid = %d";
+      break;
+  }
+  return db_query($query, $status, $obj_id);
 }
 
+/**
+ *
+ */
 function moderation_delete_moderation($obj_type, $obj_id) {
-  return db_query("DELETE FROM {moderation_moderation} WHERE obj_type = '%s' AND obj_id = %d", $obj_type, $obj_id);
+  switch ($obj_type) {
+    case 'node':
+      $query = "SELECT TRUE";
+      break;
+    case 'comment':
+      $query = "DELETE FROM {moderation_comment_status} WHERE cid = %d";
+      break;
+  }
+  return db_query($query, $obj_id);
 }
 
+/**
+ *
+ */
 function moderation_insert_moderation_log($obj_type, $obj_id, $status, $attribute = 'moderate', $user = NULL) {
-  return db_query("INSERT INTO {moderation} (obj_type, obj_id, uid, attribute, status, created) VALUES ('%s', %d, %d, '%s', %d, %d)", $obj_type, $obj_id, $user->uid, $attribute, $status, time());
+  $query = "INSERT INTO {moderation} (obj_type, obj_id, uid, attribute, status, created) VALUES ('%s', %d, %d, '%s', %d, %d)";
+  return db_query($query, $obj_type, $obj_id, $user->uid, $attribute, $status, time());
 }
 
+/**
+ *
+ */
 function moderation_delete_moderation_log($obj_type, $obj_id) {
-  return db_query("DELETE FROM {moderation} (obj_type, obj_id, uid, ) VALUES ()", $obj_type, $obj_id);
+  $query = "DELETE FROM {moderation} WHERE obj_type = '%s' AND obj_id = %d";
+  return db_query($query, $obj_type, $obj_id);
 }
 
+/**
+ *
+ */
 function moderation_get_last($obj_type, $obj_id) {
   $query = "SELECT m.*, u.name FROM {moderation} m
               LEFT JOIN {users} u ON m.uid = u.uid
@@ -265,48 +287,25 @@ function moderation_get_last($obj_type, $obj_id) {
   return db_fetch_object(db_query($query, $obj_type, $obj_id));
 }
 
+/**
+ *
+ */
 function moderation_get_status($obj_type, $obj_id) {
-  return db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_type = '%s' AND obj_id = %d", $obj_type, $obj_id));
-}
-
-function moderation_is_moderated_type($type) {
-  return in_array($type, variable_get('moderation_moderated_types', array()));
+  switch ($obj_type) {
+    case 'comment':
+      $query = "SELECT status FROM {moderation_comment_status} WHERE cid = %d";
+      break;
+    case 'node':
+    case 'thread':
+      $query  = "SELECT moderate FROM {node} WHERE nid = %d";
+      break;
+  }
+  return db_result(db_query($query, $obj_id));
 }
 
 /**
- * Implementation of hook_form_alter().
+ *
  */
-function moderation_form_alter(&$form, &$form_state, $form_id) {
-  if (isset($form['type']) && $form['type']['#value'] .'_node_form' == $form_id)  {
-    if (moderation_is_moderated_type($form['type']['#value'])) {
-      if (user_access('access node queue')) {
-        $form['options']['moderate'] = array(
-          '#type' => 'checkbox',
-          '#title' => t('Has been moderated'),
-          '#default_value' => $form['#node']->moderate,
-          '#weight' => 24,
-          '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
-        );
-      }
-    }
-  }
-}
-
-/**
- * Implementation of hook_form_comment_form_alter().
- */
-function moderation_form_comment_form_alter(&$form, &$form_state) {
-  if (user_access('access node queue')) {
-    $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='comment'", $form['cid']['#value']));
-      $form['admin']['moderate'] = array(
-        '#type' => 'checkbox',
-        '#title' => 'Has been moderated',
-        '#default_value' => $status,
-        '#weight' => -1,
-        '#description' => t('Check to remove from moderation queue, uncheck to add it to the queue.'),
-      );
-  }
-}
 
 function moderation_log_message($attribute, $status, $type) {
   switch ($attribute) {
@@ -350,11 +349,10 @@ function moderation_comment_render($node) {
 
   // Multiple comment view
   $query = "SELECT c.cid as cid, c.pid, c.nid, c.subject, c.comment, c.format, c.timestamp, c.name, c.mail, c.homepage, u.uid, u.name AS registered_name, u.signature, u.signature_format, u.picture, u.data, c.thread, c.status FROM {comments} c
-              INNER JOIN {moderation_moderation} mm ON mm.obj_id = c.cid
+              INNER JOIN {moderation_comment_status} mcs ON mcs.cid = c.cid
               INNER JOIN {users} u ON c.uid = u.uid
               WHERE c.nid = %d
-                AND mm.obj_type = 'comment'
-                AND mm.status = 0";
+                AND mcs.status = 0";
 
   $query_args = array($nid);
   $query .= ' AND c.status = %d';
@@ -561,21 +559,8 @@ function theme_moderation_node_preview($node) {
 function theme_moderation_comments_preview($node) {
   $output = '<div class="thread-preview moderation-thread">';
   $output .= '<h3>'. t('Preview comments') .'</h3>';
-  $output .= moderation_comment_render($node);
-  $output .= "</div>\n";
-  return $output;
-}
-
-/**
- * Display a node preview for display during node creation and editing.
- *
- * @param $node
- *   The node object which is being previewed.
- */
-function theme_moderation_comments_flagged_preview($node) {
-  $output = '<div class="thread-preview moderation-flag">';
-  $output .= '<h3>'. t('Preview comments') .'</h3>';
-  $output .= moderation_comment_flagged_render($node);
+  //$output .= moderation_comment_render($node);
+  $output .= views_embed_view('moderation', 'attachment_1');
   $output .= "</div>\n";
   return $output;
 }
@@ -587,8 +572,9 @@ function theme_moderation_item_comment($comment, $moderation, $node, $token) {
   $output = '<div id="moderation-content-'. $comment->cid .'" class="moderation-content clear-block container-inline">';
   $output .= '<div type="comment" entity-id="' . $comment->cid . '" id="moderation-title-'. $comment->cid .'" class="moderation-title title moderation-preview-attributes">';
   $output .= format_date($comment->timestamp, 'small') .' ';
-  $output .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'))));
+  $output .= l($comment->subject, 'moderation/comment/'. $comment->cid .'/get/preview', array('attributes' => array('title' => t('Show preview'), 'class' => 'moderation-ajax-preview')));
   $output .= theme('mark', node_mark($comment->cid, $comment->changed));
+  $output .= '<div class="moderation-preview-attributes hidden" entity-id="' . $comment->cid . '" type="comment"></div>';
   if ($moderation) {
     $output .= ' <div class="moderation-moderation" title="'. t('Last status change') .'">'. t('(!user - !action - !date)', array('!user' => theme('username', (object) array('uid' => $moderation->uid, 'name' => $moderation->name)), '!action' => moderation_log_message($moderation->attribute, $moderation->status, $moderation->obj_type), '!date' => format_date($moderation->created, 'small'))) .'</div>';
   }
@@ -751,12 +737,3 @@ function theme_moderation_item_links($entity, $entity_type, $moderation, $token)
   return $output;
 }
 
-/**
- * Implements hook_views_api().
- */
-function moderation_views_api() {
-  return array(
-    'api' => 2.0,
-    'path' => drupal_get_path('module', 'moderation') . '/includes',
-  );
-}

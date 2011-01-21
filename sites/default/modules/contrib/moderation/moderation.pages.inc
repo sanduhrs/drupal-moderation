@@ -96,16 +96,10 @@ function moderation_goto($obj_id, $obj_type) {
  */
 function moderation_switch_moderation($obj_id, $obj_type) {
   global $user;
-
-  $status = db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type));
-  db_query("INSERT INTO {moderation} (obj_id, obj_type, uid, attribute, status, created) VALUES (%d, '%s', %d, '%s', %d, %d)", $obj_id, $obj_type, $user->uid, 'moderate', !$status, time());
-  db_query("DELETE FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type);
-  if ($obj_type == 'node') {
-    // Theres a core moderate attribute
-    // we update it here, to support modules that use on it
-    moderation_switch_attribute($obj_id, $obj_type, 'moderate');
-  }
-  return array(db_query("INSERT INTO {moderation_moderation} (obj_id, obj_type, status) VALUES (%d, '%s', %d)", $obj_id, $obj_type, !$status), !$status, 'moderate');
+  $status = moderation_get_status($obj_type, $obj_id);
+  moderation_insert_moderation_log($obj_type, $obj_id, !$status, 'moderate', $user);
+  $result = moderation_update_moderation($obj_type, $obj_id, !$status);
+  return array($result, !$status, 'moderate', $obj_id, $obj_type);
 }
 
 /**
@@ -126,9 +120,8 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
     $status_new = !db_result(db_query("SELECT %s FROM {comments} WHERE cid=%d", $attribute, $obj_id));
     $success = db_query("UPDATE {comments} SET %s=%d WHERE cid=%d", $attribute, $status_new, $obj_id);
   }
-
-  db_query("INSERT INTO {moderation} (obj_id, obj_type, uid, attribute, status, created) VALUES (%d, '%s', %d, '%s', %d, %d)", $obj_id, $obj_type, $user->uid, $attribute, $status_new, time());
-  return array($success, $status_new, $attribute, $obj_type);
+  $result = moderation_insert_moderation_log($obj_type, $obj_id, !$status, $attribute, $user);
+  return array($result, $status_new, $attribute, $obj_type);
 }
 
 /**
@@ -184,12 +177,15 @@ function moderation_get_preview($obj_id, $obj_type) {
 function moderation_get_attribute($obj_id, $obj_type, $attribute) {
   $table = ($obj_type == 'comment') ? 'comments' : 'node';
   $id    = ($obj_type == 'comment') ? 'cid'      : 'nid';
-
+  
+  moderation_get_status($obj_type, $obj_id);
   if ($attribute == 'moderate') {
-    print drupal_to_js(array(db_result(db_query("SELECT status FROM {moderation_moderation} WHERE obj_id=%d AND obj_type='%s'", $obj_id, $obj_type))));
+    $status = moderation_get_status($obj_type, $obj_id);
+    print drupal_to_js(array($status, $obj_id, $obj_type));
   }
   else {
-    print drupal_to_js(array(db_result(db_query("SELECT %s FROM {%s} WHERE %s=%d", $attribute , $table, $id, $obj_id))));
+    $status = db_result(db_query("SELECT %s FROM {%s} WHERE %s=%d", $attribute , $table, $id, $obj_id));
+    print drupal_to_js(array($status, $obj_id, $obj_type));
   }
 
   exit();

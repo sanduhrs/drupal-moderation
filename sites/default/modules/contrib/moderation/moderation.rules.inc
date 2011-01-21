@@ -26,7 +26,7 @@ function moderation_rules_condition_info() {
 }
 
 function moderation_rules_condition_in_moderation($node) {
-  return !$node->moderation;
+  return !$node->moderate;
 }
 
 /**

@@ -42,14 +42,36 @@ function moderation_views_data_alter(&$data) {
  * Implements hook_views_data().
  */
 function moderation_views_data() {
-  $data['moderation']['table']['group']  = t('Moderation');
-  $data['moderation']['table']['join']['node'] = array(
-    'left_field' => 'nid',
-    'field' => 'obj_id',
-    'extra' => array(
-      'field' => 'obj_type',
-      'operator' => '=',
-      'value' => 'node',
+  $data['moderation_comment_status']['table']['group']  = t('Moderation');
+  $data['moderation_comment_status']['table']['join'] = array(
+    'comments' => array(
+      'left_field' => 'cid',
+      'field' => 'cid',
+      'type' => 'left',
+    ),
+    // vocabulary links to node through term_data via vid
+    'node' => array(
+      'left_table' => 'comments',
+      'left_field' => 'cid',
+      'field' => 'cid',
+    ),
+  );
+
+  // status (approved or not)
+  $data['moderation_comment_status']['status'] = array(
+    'title' => t('Is moderated'),
+    'help' => t('Whether or not the comment has been moderated.'),
+    'field' => array(
+      'handler' => 'views_handler_field_boolean',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_boolean_operator',
+      'label' => t('Moderated'),
+      'type' => 'yes-no',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
     ),
   );
   return $data;
@@ -77,3 +99,4 @@ function moderation_views_handlers() {
     ),
   );
 }
+

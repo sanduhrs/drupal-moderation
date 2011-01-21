@@ -106,18 +106,18 @@
 
 /* Comment Moderation */
 
-.view-comments .views-field-timestamp,
-.view-Nodes .views-field-created {
+.moderation-queue .views-field-timestamp,
+.moderation-queue .views-field-created {
   font-size:0.9em;
   }
 
-.view-comments .views-field-subject .field-content,
-.view-Nodes .views-field-title .field-content {
+.moderation-queue .views-field-subject .field-content,
+.moderation-queue .views-field-title .field-content,
+.moderation-queue .views-field-thread-title .field-content {
   font-weight:bold;
   }
   
-.view-comments .views-row,
-.view-Nodes .views-row {
+.moderation-queue .views-row {
   padding-top:10px;
   border-bottom:1px solid #B8D3E5;
   }
