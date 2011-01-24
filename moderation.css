@@ -1,13 +1,20 @@
 .moderation-content div.messages {
   display: block;
-}
+  }
 
 .moderation-queue .throbbing {
   background-image: url(/misc/throbber.gif);
   background-position: 100% -20px;
   background-repeat: no-repeat;
   padding-right: 20px;
-}
+  }
+
+.moderation-attribute .throbbing {
+  background-image: url(/misc/throbber.gif);
+  background-position: 100% -20px;
+  background-repeat: no-repeat;
+  padding-right: 20px;
+  }
 
 .moderation-messages {
   border-color:#C7F2C8;
@@ -16,52 +23,55 @@
   border:1px solid #B8D3E5;
   margin:0.75em 0pt;
   padding:0.5em 1em
-}
+  }
 
 .moderation-preview {
   display: none;
-}
+  border-left:40px solid #d4ebfa;
+  padding-left:2px;
+  }
 
 .moderation-moderation {
   float:right;
-}
+  }
 
 .moderation-attribute {
   padding: 0 10px;
   float:right;
-}
+  }
 
 .moderation-meta {
   float:left;
-}
+  }
 
 .moderation-username,
 .moderation-name {
   padding-left:0;
   float: left;
-}
+  }
 
 .moderation-parent {
   padding-left:0;
   float: left;
   display:block;
-}
+  }
 
 .moderation-preview .comment {
   border-top:none;
-}
+  }
 
 .moderation-preview div#comments {
   margin:0;
   padding:0;
-}
+  }
 
 .moderation-preview div#comments h2.comments {
   margin:0;
   padding:0;
   background:none;
   clear:both;
-}
+  }
+
 .moderation-queue td {
   padding-top:10px;
   padding-bottom:10px;
@@ -77,9 +87,58 @@
 .moderation-queue .moderation-promote a,
 .moderation-queue .moderation-status a {
   font-size:90%;
-}
+  }
 
 .moderation-queue .thread-preview {
-  background-color:#FCFCE8;
   padding: 10px;
-}
+  }
+
+.moderation-attribute-wrapper {
+  font-size:90%;
+  }
+
+/* Views Moderation */
+
+.moderation-queue .views-field-timestamp,
+.moderation-queue .views-field-created {
+  font-size:0.9em;
+  }
+
+.moderation-queue .views-field-subject .field-content,
+.moderation-queue .views-field-title .field-content,
+.moderation-queue .views-field-thread-title .field-content {
+  font-weight:bold;
+  }
+  
+.moderation-queue .views-row {
+  padding-top:10px;
+  border-bottom:1px solid #B8D3E5;
+  padding-left:5px;
+  padding-right:5px;
+  }
+  
+.moderation-preview .preview {
+  font-weight:normal;
+  } 
+
+.moderation-queue .views-row-odd {
+  background-color:#EDF5FA;
+  }
+  
+.moderation-queue .views-field-note {
+  padding-left:40px;
+  font-size:0.9em;
+  margin-top:10px;
+  }
+  
+.moderation-queue .views-field-name-1 {
+  padding-left:40px;
+  font-size:0.9em;
+  border-right:1px solid #B8D3E5;
+  padding-right:5px;
+  margin-right:10px;
+  }
+  
+.moderation-queue .views-field-ops {
+  font-size:0.9em;
+  }
