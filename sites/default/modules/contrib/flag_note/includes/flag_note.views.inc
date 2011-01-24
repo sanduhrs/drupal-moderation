@@ -34,6 +34,14 @@ function flag_note_views_data() {
   $groupname = t('Flag note');
   $data['flag_note']['table']['group'] = $groupname;
 
+  $data['flag_note']['table']['join'] = array(
+    'users' => array(
+      'left_field' => 'uid',
+      'field' => 'uid',
+      'type' => 'left',
+    ),
+  );
+
 // DO NOT UNCOMMENT - FLAG NOTES __MUST__ BE PROVIDED THROUGH RELATIONSHIPS ONLY !!!
 //
 //  $data['flag_note']['table']['base'] = array(
