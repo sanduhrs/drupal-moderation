@@ -227,12 +227,26 @@ function moderation_views_default_views() {
       'name' => 'name',
       'type' => 'type',
       'title' => 'title',
+      'name_1' => 'name_1',
       'ops' => 'ops',
     ),
     'separator' => '',
     'hide_empty' => 0,
   ));
   $handler = $view->new_display('page', 'Threads', 'page_1');
+  $handler->override_option('sorts', array(
+    'last_comment_timestamp' => array(
+      'order' => 'DESC',
+      'granularity' => 'second',
+      'id' => 'last_comment_timestamp',
+      'table' => 'node_comment_statistics',
+      'field' => 'last_comment_timestamp',
+      'override' => array(
+        'button' => 'Use default',
+      ),
+      'relationship' => 'none',
+    ),
+  ));
   $handler->override_option('access', array(
     'type' => 'perm',
     'perm' => 'access thread queue',
@@ -386,6 +400,19 @@ function moderation_views_default_views() {
       'id' => 'moderation_links',
       'table' => 'comments',
       'field' => 'moderation_links',
+      'override' => array(
+        'button' => 'Use default',
+      ),
+      'relationship' => 'none',
+    ),
+  ));
+  $handler->override_option('sorts', array(
+    'timestamp' => array(
+      'order' => 'DESC',
+      'granularity' => 'second',
+      'id' => 'timestamp',
+      'table' => 'comments',
+      'field' => 'timestamp',
       'override' => array(
         'button' => 'Use default',
       ),
@@ -580,6 +607,19 @@ function moderation_views_default_views() {
       'id' => 'moderation_links',
       'table' => 'node',
       'field' => 'moderation_links',
+      'override' => array(
+        'button' => 'Use default',
+      ),
+      'relationship' => 'none',
+    ),
+  ));
+  $handler->override_option('sorts', array(
+    'created' => array(
+      'order' => 'DESC',
+      'granularity' => 'second',
+      'id' => 'created',
+      'table' => 'node',
+      'field' => 'created',
       'override' => array(
         'button' => 'Use default',
       ),
@@ -839,6 +879,19 @@ function moderation_views_default_views() {
       'relationship' => 'none',
     ),
   ));
+  $handler->override_option('sorts', array(
+    'timestamp' => array(
+      'order' => 'DESC',
+      'granularity' => 'second',
+      'id' => 'timestamp',
+      'table' => 'comments',
+      'field' => 'timestamp',
+      'override' => array(
+        'button' => 'Use default',
+      ),
+      'relationship' => 'none',
+    ),
+  ));
   $handler->override_option('filters', array(
     'status' => array(
       'operator' => '=',
@@ -918,6 +971,17 @@ function moderation_views_default_views() {
         'button' => 'Use default',
       ),
       'relationship' => 'none',
+    ),
+    'flag_note_author_rel' => array(
+      'label' => 'flag_note_author',
+      'required' => 0,
+      'id' => 'flag_note_author_rel',
+      'table' => 'flag_note',
+      'field' => 'flag_note_author_rel',
+      'relationship' => 'flag_note_comments_rel',
+      'override' => array(
+        'button' => 'Use default',
+      ),
     ),
   ));
   $handler->override_option('fields', array(
@@ -1059,8 +1123,8 @@ function moderation_views_default_views() {
     'title' => array(
       'label' => '',
       'alter' => array(
-        'alter_text' => 0,
-        'text' => '',
+        'alter_text' => 1,
+        'text' => '[title]<br />',
         'make_link' => 0,
         'path' => '',
         'link_class' => '',
@@ -1091,7 +1155,7 @@ function moderation_views_default_views() {
       'relationship' => 'none',
     ),
     'note' => array(
-      'label' => '',
+      'label' => 'Note',
       'alter' => array(
         'alter_text' => 0,
         'text' => '',
@@ -1121,6 +1185,41 @@ function moderation_views_default_views() {
       'override' => array(
         'button' => 'Use default',
       ),
+    ),
+    'name_1' => array(
+      'label' => 'By',
+      'alter' => array(
+        'alter_text' => 0,
+        'text' => '',
+        'make_link' => 0,
+        'path' => '',
+        'link_class' => '',
+        'alt' => '',
+        'prefix' => '',
+        'suffix' => '',
+        'target' => '',
+        'help' => '',
+        'trim' => 0,
+        'max_length' => '',
+        'word_boundary' => 1,
+        'ellipsis' => 1,
+        'html' => 0,
+        'strip_tags' => 0,
+      ),
+      'empty' => '',
+      'hide_empty' => 0,
+      'empty_zero' => 0,
+      'link_to_user' => 1,
+      'overwrite_anonymous' => 0,
+      'anonymous_text' => '',
+      'exclude' => 0,
+      'id' => 'name_1',
+      'table' => 'users',
+      'field' => 'name',
+      'override' => array(
+        'button' => 'Use default',
+      ),
+      'relationship' => 'flag_note_author_rel',
     ),
     'ops' => array(
       'label' => '',
@@ -1186,6 +1285,19 @@ function moderation_views_default_views() {
         'button' => 'Use default',
       ),
       'relationship' => 'none',
+    ),
+  ));
+  $handler->override_option('sorts', array(
+    'timestamp' => array(
+      'order' => 'DESC',
+      'granularity' => 'second',
+      'id' => 'timestamp',
+      'table' => 'flag_content',
+      'field' => 'timestamp',
+      'relationship' => 'flag_content_rel',
+      'override' => array(
+        'button' => 'Use default',
+      ),
     ),
   ));
   $handler->override_option('access', array(
