@@ -124,3 +124,7 @@
 .moderation-preview .preview {
   font-weight:normal;
   } 
+
+.moderation-queue .views-row-odd {
+  background-color:#EDF5FA;
+  }
