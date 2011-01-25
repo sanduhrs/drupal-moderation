@@ -8,7 +8,7 @@
     <title><?php print $head_title ?></title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <?php
-      $styles = str_replace('<script type="text/javascript" src="/misc/jquery.js?B"></script>', '', $styles); 
+      $styles = str_replace('<script type="text/javascript" src="/misc/jquery.js?P"></script>', '', $styles); 
       print $styles
     ?>
     <?php print $scripts ?>
