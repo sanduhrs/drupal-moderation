@@ -62,7 +62,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
 
     if ($js) {
       $GLOBALS['devel_shutdown'] = FALSE;
-      print drupal_to_js($result);
+      print moderation_json_encode($result);
       exit();
     }
     else {
@@ -111,7 +111,6 @@ function moderation_switch_moderation($obj_id, $obj_type) {
  */
 function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
   global $user;
-
   if ($obj_type == 'node') {
     $status_new = !db_result(db_query("SELECT %s FROM {node} WHERE nid=%d", $attribute, $obj_id));
     $success = db_query("UPDATE {node} SET %s=%d WHERE nid=%d", $attribute, $status_new, $obj_id);
@@ -131,39 +130,32 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
  * @param string $obj_type
  */
 function moderation_get_preview($obj_id, $obj_type) {
-  if ($obj_type == 'node') {
-    if ($node = node_load($obj_id)) {
-      $data = theme('moderation_node_preview', $node);
-    }
-  }
-  elseif ($obj_type == 'comment') {
-    if ($comment = _comment_load($obj_id)) {
-      $_GET['q'] = 'node/'. $comment->nid;
-      $node = node_load($comment->nid);
-      $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
-    }
-  }
-  elseif ($obj_type == 'thread') {
+  $data = '';
+  switch ($obj_type) {
+    case 'node':
+      if ($node = node_load($obj_id)) {
+        $data = theme('moderation_node_preview', $node);
+      }
+      break;
+    case 'comment':
+      if ($comment = _comment_load($obj_id)) {
+        $_GET['q'] = 'node/'. $comment->nid;
+        $node = node_load($comment->nid);
+        $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
+      }
+      break;
+    case 'thread':
       if ($node = node_load($obj_id)) {
 
-      // fix drupal_get_destination issue for propper redirection
-      $_REQUEST['destination'] = 'admin/content/moderation';
+        // fix drupal_get_destination issue for propper redirection
+        $_REQUEST['destination'] = 'admin/content/moderation';
 
-      $data = theme('moderation_node_preview', $node);
-      $data .= theme('moderation_comments_preview', $node);
-    }
+        $data = theme('moderation_node_preview', $node);
+        $data .= theme('moderation_comments_preview', $node);
+      }
+      break;
   }
-  elseif ($obj_type == 'flag') {
-      if ($node = node_load($obj_id)) {
-
-      // fix drupal_get_destination issue for propper redirection
-      $_REQUEST['destination'] = 'admin/content/moderation-flag';
-
-      $data = theme('moderation_node_preview', $node);
-      $data .= theme('moderation_comments_flagged_preview', $node);
-    }
-  }
-  print drupal_to_js($data);
+  print moderation_json_encode($data);
   exit();
 }
 
@@ -177,16 +169,60 @@ function moderation_get_preview($obj_id, $obj_type) {
 function moderation_get_attribute($obj_id, $obj_type, $attribute) {
   $table = ($obj_type == 'comment') ? 'comments' : 'node';
   $id    = ($obj_type == 'comment') ? 'cid'      : 'nid';
-  
+
   moderation_get_status($obj_type, $obj_id);
   if ($attribute == 'moderate') {
     $status = moderation_get_status($obj_type, $obj_id);
-    print drupal_to_js(array($status, $obj_id, $obj_type));
+    print moderation_json_encode(array($status, $obj_id, $obj_type));
   }
   else {
     $status = db_result(db_query("SELECT %s FROM {%s} WHERE %s=%d", $attribute , $table, $id, $obj_id));
-    print drupal_to_js(array($status, $obj_id, $obj_type));
+    print moderation_json_encode(array($status, $obj_id, $obj_type));
+  }
+  exit();
+}
+
+/**
+ * Log pages; Menu callback
+ */
+function moderation_log($type = 'node', $obj_id = NULL) {
+
+  switch ($type) {
+    case 'comment':
+      $sql = "SELECT m.*, c.nid, c.cid, c.subject, u.uid, u.name FROM {moderation} m
+                LEFT JOIN {comments} c ON c.cid = m.obj_id
+                LEFT JOIN {users} u ON u.uid = m.uid
+                WHERE m.obj_type = 'comment' ". ($obj_id ? 'AND m.obj_id = '. $obj_id : '') ." ORDER BY m.created DESC";
+      break;
+    case 'node':
+      $sql = "SELECT m.*, n.title, n.nid, u.uid, u.name FROM {moderation} m
+                LEFT JOIN {node} n ON n.nid = m.obj_id
+                LEFT JOIN {users} u ON u.uid = m.uid
+                WHERE m.obj_type = 'node' ". ($obj_id ? 'AND m.obj_id = '. $obj_id : '') ." ORDER BY m.created DESC";
+      break;
   }
 
-  exit();
+  $result = pager_query($sql, 25, 0, NULL);
+  while ($moderation = db_fetch_object($result)) {
+    $title      = $moderation->subject ? $moderation->subject : $moderation->title;
+    $fragment   = $moderation->cid ? 'comment-'. $moderation->cid : NULL;
+
+    $account = new stdClass();
+    $account->uid  = $moderation->uid;
+    $account->name = $moderation->name;
+
+    $moderations[] = array(
+      l($title, 'node/'. $moderation->nid, array('fragment' => $fragment)),
+      theme('username', $account),
+      moderation_log_message($moderation->attribute, $moderation->status, $type),
+      format_date($moderation->created),
+    );
+  }
+
+  $header = array(
+    t('Title'), t('User'), t('Action'), t('Date'),
+  );
+  $output = theme('table', $header, $moderations);
+  $output .= theme('pager');
+  return $output;
 }

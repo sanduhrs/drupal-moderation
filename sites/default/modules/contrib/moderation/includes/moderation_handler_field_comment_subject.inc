@@ -1,10 +1,21 @@
 <?php
 // $Id$
+
+/**
+ * @file
+ * Moderation - Views integration
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+/**
+ * Extend views_handler_field_comment class.
+ */
 class moderation_handler_field_comment_subject extends views_handler_field_comment {
   function option_definition() {
     $options = parent::option_definition();
     $options['ajax_preview'] = array('bool' => TRUE, 'default' => FALSE);
-
     return $options;
   }
 
@@ -20,10 +31,11 @@ class moderation_handler_field_comment_subject extends views_handler_field_comme
   }
 
   /**
-   * Add the js file.
+   * Add the js / css file.
    */
   function pre_render($values) {
     parent::pre_render($values);
+    drupal_add_css(drupal_get_path('module', 'moderation') . '/moderation.css');
     if (!empty($this->options['ajax_preview'])) {
       drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation-views.js');
     }
@@ -38,19 +50,14 @@ class moderation_handler_field_comment_subject extends views_handler_field_comme
         $this->options['alter']['link_class'] = 'moderation-ajax-preview';
       }
     }
-
     return $data;
   }
 
   function advanced_render($values) {
     $this->last_render = parent::advanced_render($values);
     if (!empty($this->options['ajax_preview'])) {
-      $this->last_render .= '<div type="comment" entity-id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes hidden"></div>';
+      $this->last_render .= '<div type="comment" entity-id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes"></div>';
     }
-
     return $this->last_render;
   }
-
-  
-
 }

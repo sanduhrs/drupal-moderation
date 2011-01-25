@@ -134,9 +134,9 @@ function moderation_update_6101() {
 }
 
 /**
- * Implement HOOK_update_6102().
+ * Implement HOOK_update_6200().
  */
-function moderation_update_6102() {
+function moderation_update_6200() {
   $ret = array();
   $schema = moderation_schema();
 

@@ -1,6 +1,17 @@
 <?php
 // $Id$
 
+/**
+ * @file
+ * Moderation - Views integration
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+/**
+ * Batch import for HOOK_install().
+ */
 function moderation_batch_import(&$context) {
   // Use the $context['sandbox'] at your convenience to store the
   // information needed to track progression between successive calls.
@@ -16,7 +27,7 @@ function moderation_batch_import(&$context) {
   // progress feedback to the user and wait for the next request.
   $limit = 5;
 
-  // Retrieve the next group of nids.
+  // Retrieve the next group of cids.
   $result = db_query_range("SELECT cid FROM {comments} WHERE cid > %d ORDER BY cid ASC", $context['sandbox']['current_cid'], 0, $limit);
   while ($row = db_fetch_array($result)) {
     $comment = _comment_load($row['cid']);
@@ -42,6 +53,9 @@ function moderation_batch_import(&$context) {
   }
 }
 
+/**
+ * Batch finished callback.
+ */
 function moderation_batch_import_finished($success, $results, $operations) {
   if ($success) {
     $message = format_plural(count($results), 'One comment processed.', '@count comments processed.');

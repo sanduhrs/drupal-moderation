@@ -2,14 +2,19 @@
 // $Id$
 
 /**
+ * @file
+ * Moderation - Views integration
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ */
+
+/**
  * Implements hook_views_data_alter().
  */
 function moderation_views_data_alter(&$data) {
-  $data['comments']['subject']['field']['handler'] = 'moderation_handler_field_comment_subject';
-
   $data['node']['title']['field']['handler'] = 'moderation_handler_field_node_title';
   $data['node']['title']['field']['moderation type'] = 'node';
-
   $data['node']['moderation_links'] = array(
     'title' => t('Moderation links (Node)'),
     'help' => t('Moderation links (Node)'),
@@ -28,12 +33,28 @@ function moderation_views_data_alter(&$data) {
     ),
   );
 
+  $data['comments']['subject']['field']['handler'] = 'moderation_handler_field_comment_subject';
   $data['comments']['moderation_links'] = array(
     'title' => t('Moderation links (Comment)'),
     'help' => t('Moderation links (Comment)'),
     'group' => t('Moderation'),
     'field' => array(
       'handler' => 'moderation_handler_field_moderation_links',
+    ),
+  );
+  $data['comments']['edit_comment'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('Provide a simple link to edit the comment.'),
+      'handler' => 'views_handler_field_comment_link_edit',
+    ),
+  );
+  $data['comments']['moderation_notes'] = array(
+    'field' => array(
+      'title' => t('Moderation notes'),
+      'help' => t('Moderation notes'),
+      'group' => t('Moderation'),
+      'handler' => 'moderation_handler_field_moderation_notes',
     ),
   );
 }
@@ -49,7 +70,6 @@ function moderation_views_data() {
       'field' => 'cid',
       'type' => 'left',
     ),
-    // vocabulary links to node through term_data via vid
     'node' => array(
       'left_table' => 'comments',
       'left_field' => 'cid',
@@ -57,7 +77,8 @@ function moderation_views_data() {
     ),
   );
 
-  // status (approved or not)
+  // Comment moderated or not
+  // Nodes already have their own implementation
   $data['moderation_comment_status']['status'] = array(
     'title' => t('Is moderated'),
     'help' => t('Whether or not the comment has been moderated.'),
@@ -86,7 +107,6 @@ function moderation_views_handlers() {
       'path' => drupal_get_path('module', 'moderation') . '/includes',
     ),
     'handlers' => array(
-      // Field handler.
       'moderation_handler_field_comment_subject' => array(
         'parent' => 'views_handler_field_comment'
       ),
@@ -96,7 +116,9 @@ function moderation_views_handlers() {
       'moderation_handler_field_moderation_links' => array(
         'parent' => 'views_handler_field',
       ),
+      'moderation_handler_field_moderation_notes' => array(
+        'parent' => 'views_handler_field',
+      ),
     ),
   );
 }
-
