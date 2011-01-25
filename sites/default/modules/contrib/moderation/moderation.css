@@ -135,11 +135,39 @@
 .moderation-queue .views-row-odd {
   background-color:#EDF5FA;
   }
+
+.moderation-queue .views-row-even {
+  background-color:#fff;
+  }
+
+.moderation-queue .views-row-even .views-row-odd,
+.moderation-queue .views-row-odd .views-row-even {
+  background-color:inherit;
+  }
   
 .moderation-queue .views-field-note {
   padding-left:40px;
   font-size:0.9em;
   margin-top:10px;
+  }
+
+.moderation-queue .views-field-moderation-notes {
+  padding-left:40px;
+  }
+
+.moderation-queue .views-field-moderation-notes .views-field-note {
+  padding-left:0px;
+  margin-top:0px;
+  }
+
+.moderation-queue .views-field-moderation-notes .views-row {
+  padding-top:0px;
+  border-bottom:none;
+  padding-bottom:10px;
+  }
+
+.moderation-queue .views-field-moderation-notes .view-content {
+  padding-left:36px;
   }
   
 .moderation-queue .views-field-name-1 {
