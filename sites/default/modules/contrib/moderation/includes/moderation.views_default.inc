@@ -1462,7 +1462,7 @@ function moderation_views_default_views() {
   ));
   $handler->override_option('filters', array());
   $handler->override_option('header', '');
-  $handler->override_option('items_per_page', 1);
+  $handler->override_option('items_per_page', 0);
   $handler->override_option('row_options', array(
     'inline' => array(
       'timestamp' => 'timestamp',
