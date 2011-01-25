@@ -7,12 +7,12 @@
     <?php print $head ?>
     <title><?php print $head_title ?></title>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <?php print $styles ?>
     <?php
-      $styles = str_replace('<script type="text/javascript" src="/misc/jquery.js?P"></script>', '', $styles); 
-      print $styles;
-dsm($styles);
+      $scripts = str_replace('<script type="text/javascript" src="/misc/jquery.js?c"></script>', '', $scripts); 
+      dsm($scripts);
+      print $scripts
     ?>
-    <?php print $scripts ?>
     <!--[if lt IE 7]>
       <?php print phptemplate_get_ie_styles(); ?>
     <![endif]-->
