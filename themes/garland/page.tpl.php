@@ -9,7 +9,8 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <?php
       $styles = str_replace('<script type="text/javascript" src="/misc/jquery.js?P"></script>', '', $styles); 
-      print $styles
+      print $styles;
+dsm($styles);
     ?>
     <?php print $scripts ?>
     <!--[if lt IE 7]>
