@@ -6,7 +6,11 @@
   <head>
     <?php print $head ?>
     <title><?php print $head_title ?></title>
-    <?php print $styles ?>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <?php
+      $styles = str_replace('<script type="text/javascript" src="/misc/jquery.js?B"></script>', '', $styles); 
+      print $styles
+    ?>
     <?php print $scripts ?>
     <!--[if lt IE 7]>
       <?php print phptemplate_get_ie_styles(); ?>
