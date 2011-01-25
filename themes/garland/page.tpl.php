@@ -9,7 +9,7 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <?php print $styles ?>
     <?php
-      preg_replace('/<script type="text\/javascript" src="\/misc\/jquery.js?(.*)"><\/script>/', '', $scripts); 
+      $scripts = str_replace('jquery.js', '', $scripts); 
       dsm($scripts);
       print $scripts
     ?>
