@@ -1,3 +1,14 @@
+/* $Id$ */
+
+/**
+ * @file
+ * Moderation - CSS styling
+ *
+ * @author
+ * Stefan Auditor <stefan.auditor@erdfisch.de>
+ * Fabian Lorenzen <fabian.lorenzen@erdfisch.de>
+ */
+
 .moderation-content div.messages {
   display: block;
   }

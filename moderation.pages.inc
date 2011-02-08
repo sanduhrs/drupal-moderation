@@ -62,7 +62,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
 
     if ($js) {
       $GLOBALS['devel_shutdown'] = FALSE;
-      print drupal_to_js($result);
+      print moderation_json_encode($result);
       exit();
     }
     else {
@@ -155,7 +155,7 @@ function moderation_get_preview($obj_id, $obj_type) {
       }
       break;
   }
-  print drupal_to_js($data);
+  print moderation_json_encode($data);
   exit();
 }
 
@@ -173,11 +173,11 @@ function moderation_get_attribute($obj_id, $obj_type, $attribute) {
   moderation_get_status($obj_type, $obj_id);
   if ($attribute == 'moderate') {
     $status = moderation_get_status($obj_type, $obj_id);
-    print drupal_to_js(array($status, $obj_id, $obj_type));
+    print moderation_json_encode(array($status, $obj_id, $obj_type));
   }
   else {
     $status = db_result(db_query("SELECT %s FROM {%s} WHERE %s=%d", $attribute , $table, $id, $obj_id));
-    print drupal_to_js(array($status, $obj_id, $obj_type));
+    print moderation_json_encode(array($status, $obj_id, $obj_type));
   }
   exit();
 }

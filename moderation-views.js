@@ -23,8 +23,7 @@
       var type     = $('div.moderation-preview-attributes', wrapper).attr('type');
       var obj_id   = $('div.moderation-preview-attributes', wrapper).attr('entity-id');
       var preview  = $('.moderation-preview', wrapper);
-      var base_url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath;
-      var url      = base_url+"?q=moderation/" + type + "/" + obj_id + "/get/preview";
+      var base_url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.moderationPath;
 
       $('a.moderation-ajax-preview', wrapper).click(function(event) {
         event.preventDefault();
@@ -35,10 +34,10 @@
 
           // load preview data
           var html = $.ajax({
-            url: url+'&js=1',
+            url: base_url+"/" + type + "/" + obj_id + "/get/preview&js=1",
             dataType: "json",
-            success: function(html) {
-              preview.append(html);
+            success: function(response) {
+              preview.append(response);
               Drupal.attachBehaviors(preview);
               link.removeClass('throbbing');
               preview.show();
@@ -49,11 +48,11 @@
         preview.toggle();
 
         $.ajax({
-          url: base_url+"?q=moderation/" + type + "/"+obj_id+"/get/moderate&js=1",
+          url: base_url+"/" + type + "/"+obj_id+"/get/moderate&js=1",
           dataType: "json",
-          success: function(status) {
+          success: function(response) {
             preview.find('.moderation-messages').remove();
-            if (status[0] == 1) {
+            if (response[0] == 1) {
               preview.prepend('<div class="moderation-messages status">'+Drupal.t('This item has already been moderated.')+'</div>');
             }
           }
@@ -70,8 +69,9 @@
       var id       = $(this).attr("id");
       var type     = id.split('-')[1]
       var obj_id   = id.split('-')[3];
-      var base_url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '')+Drupal.settings.basePath;
+      var base_url = window.location.protocol+'//'+window.location.hostname+(window.location.port ? ':'+window.location.port : '');
       var url      = base_url+$(this).attr("href");
+
       var text = {
         'status': {
           0: Drupal.t('publish'),
@@ -100,14 +100,14 @@
         var html = $.ajax({
           url: url+'&js=1',
           dataType: "json",
-          success: function(result) {
+          success: function(response) {
             // Exception for comments status
-            if (result[0] && !(result[3] == 'comment' && type == 'status')) {
-              if (result[1]) $('#'+id).html(text[type][1]);
+            if (response[0] && !(response[3] == 'comment' && type == 'status')) {
+              if (response[1]) $('#'+id).html(text[type][1]);
               else $('#'+id).html(text[type][0]);
             }
             else {
-              if (result[1]) $('#'+id).html(text[type][0]);
+              if (response[1]) $('#'+id).html(text[type][0]);
               else $('#'+id).html(text[type][1]);
             }
             // Hide preview on un/moderation

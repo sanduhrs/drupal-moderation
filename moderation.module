@@ -19,6 +19,14 @@ function moderation_views_api() {
   );
 }
 
+
+/**
+ * Implement HOOK_init().
+ */
+function moderation_init() {
+  drupal_add_js(array('moderationPath' => url('moderation')), 'setting');
+}
+
 /**
  * Implement HOOK_menu().
  */
@@ -334,7 +342,7 @@ function theme_moderation_node_preview($node) {
 function theme_moderation_comments_preview($node) {
   $output = '<div class="thread-preview moderation-thread">' . "\n";
   $output .= '  <h3>'. t('Preview comments') .'</h3>' . "\n";
-  $output .= views_embed_view('moderation', 'attachment_1') . "\n";
+  $output .= views_embed_view('moderation', 'attachment_1', $node->nid) . "\n";
   $output .= '</div>' . "\n";
   return $output;
 }
@@ -415,3 +423,12 @@ function theme_moderation_item_links($entity, $entity_type, $moderation, $token)
   return $output;
 }
 
+/**
+ * Converts a PHP variable into its Javascript equivalent.
+ * We use HTML-safe strings, i.e. with <, > and & escaped.
+ * See http://api.drupal.org/api/drupal/includes--common.inc/function/drupal_json_encode/7
+ */
+function moderation_json_encode($var) {
+  // json_encode() does not escape <, > and &, so we do it with str_replace().
+  return str_replace(array('<', '>', '&'), array('\u003c', '\u003e', '\u0026'), json_encode($var));
+}

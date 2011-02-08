@@ -38,6 +38,10 @@ class moderation_handler_field_node_title extends views_handler_field_node {
     drupal_add_css(drupal_get_path('module', 'moderation') . '/moderation.css');
     if (!empty($this->options['ajax_preview'])) {
       drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation-views.js');
+      // Just in case flags are added to the content area
+      if (module_exists('flag')) {
+        drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
+      }
     }
   }
 
@@ -65,7 +69,7 @@ class moderation_handler_field_node_title extends views_handler_field_node {
     $this->last_render = parent::advanced_render($values);
     if (!empty($this->options['ajax_preview'])) {
       $moderation_type = $this->definition['moderation type'];
-      $this->last_render .= '<div type="' . $moderation_type . '" entity-id="' . $values->{$this->aliases['nid']} . '" class="moderation-preview-attributes hidden"></div>';
+      $this->last_render .= '<div type="' . $moderation_type . '" entity-id="' . $values->{$this->aliases['nid']} . '" class="moderation-preview-attributes"></div>';
     }
     return $this->last_render;
   }

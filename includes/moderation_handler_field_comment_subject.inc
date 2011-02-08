@@ -38,6 +38,10 @@ class moderation_handler_field_comment_subject extends views_handler_field_comme
     drupal_add_css(drupal_get_path('module', 'moderation') . '/moderation.css');
     if (!empty($this->options['ajax_preview'])) {
       drupal_add_js(drupal_get_path('module', 'moderation') .'/moderation-views.js');
+      // Just in case flags are added to the content area
+      if (module_exists('flag')) {
+        drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
+      }
     }
   }
 
@@ -56,7 +60,7 @@ class moderation_handler_field_comment_subject extends views_handler_field_comme
   function advanced_render($values) {
     $this->last_render = parent::advanced_render($values);
     if (!empty($this->options['ajax_preview'])) {
-      $this->last_render .= '<div type="comment" entity-id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes hidden"></div>';
+      $this->last_render .= '<div type="comment" entity-id="' . $values->{$this->aliases['cid']} . '" class="moderation-preview-attributes"></div>';
     }
     return $this->last_render;
   }

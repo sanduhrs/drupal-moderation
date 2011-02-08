@@ -42,6 +42,21 @@ function moderation_views_data_alter(&$data) {
       'handler' => 'moderation_handler_field_moderation_links',
     ),
   );
+  $data['comments']['edit_comment'] = array(
+    'field' => array(
+      'title' => t('Edit link'),
+      'help' => t('Provide a simple link to edit the comment.'),
+      'handler' => 'views_handler_field_comment_link_edit',
+    ),
+  );
+  $data['comments']['moderation_notes'] = array(
+    'field' => array(
+      'title' => t('Moderation notes'),
+      'help' => t('Moderation notes'),
+      'group' => t('Moderation'),
+      'handler' => 'moderation_handler_field_moderation_notes',
+    ),
+  );
 }
 
 /**
@@ -99,6 +114,9 @@ function moderation_views_handlers() {
         'parent' => 'views_handler_field_node',
       ),
       'moderation_handler_field_moderation_links' => array(
+        'parent' => 'views_handler_field',
+      ),
+      'moderation_handler_field_moderation_notes' => array(
         'parent' => 'views_handler_field',
       ),
     ),
