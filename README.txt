@@ -59,4 +59,3 @@ UPGRADING
 ---------
 Read more at http://drupal.org/node/250790
 
-// $Id$
