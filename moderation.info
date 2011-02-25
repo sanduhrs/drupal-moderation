@@ -1,3 +1,2 @@
-; $Id$
 name  = Moderation
 description  = A node and comment moderation queue.

@@ -1,4 +1,3 @@
-// $Id$
 
 Drupal.moderationPreview = function() {
   var id = $(this).attr("id");
