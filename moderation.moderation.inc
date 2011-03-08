@@ -122,7 +122,8 @@ function moderation_comment_queue() {
     drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
   }
 
-  $query = "SELECT c.cid FROM {comments} c
+  $query = "SELECT c.*, mm.status as moderate FROM {comments} c
+           INNER JOIN {node} n ON c.nid = n.nid
            LEFT JOIN {moderation_moderation} mm ON c.cid = mm.obj_id
            WHERE mm.obj_type = 'comment'
              AND (mm.status IS NULL OR mm.status=0)
