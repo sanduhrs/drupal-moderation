@@ -90,12 +90,19 @@ function moderation_goto($obj_id, $obj_type) {
 /**
  * Invoke update hooks for object
  */
-function moderation_update_object($obj_id, $obj_type) {
+function moderation_update_object($obj_id, $obj_type, $attribute, $status) {
   switch ($obj_type) {
     case 'comment':
       $comment = (array) _comment_load($obj_id);
-      // Allow modules to respond to the updating of a comment.
-      comment_invoke_comment($comment, 'update');
+      if ($attribute == 'status') {
+        $op = $status ? 'publish' : 'unpublish';
+        // Allow modules to respond to the publishing/unpublishing of a comment.
+        comment_invoke_comment($comment, $op);
+      }
+      else {
+        // Allow modules to respond to the updating other attributes of a comment.
+        comment_invoke_comment($comment, 'update');
+      }
       break;
     case 'node':
       $node = node_load(array('nid' => $obj_id));
@@ -115,7 +122,7 @@ function moderation_switch_moderation($obj_id, $obj_type) {
   $status = moderation_get_status($obj_type, $obj_id);
   moderation_insert_moderation_log($obj_type, $obj_id, !$status, 'moderate', $user);
   $result = moderation_update_moderation($obj_type, $obj_id, !$status);
-  moderation_update_object($obj_id, $obj_type);
+  moderation_update_object($obj_id, $obj_type, 'moderate', !$status);
   return array($result, !$status, 'moderate', $obj_id, $obj_type);
 }
 
@@ -137,7 +144,7 @@ function moderation_switch_attribute($obj_id, $obj_type, $attribute) {
     $success = db_query("UPDATE {comments} SET %s=%d WHERE cid=%d", $attribute, $status_new, $obj_id);
   }
   $result = moderation_insert_moderation_log($obj_type, $obj_id, !$status, $attribute, $user);
-  moderation_update_object($obj_id, $obj_type);
+  moderation_update_object($obj_id, $obj_type, $attribute, $status_new);
   return array($result, $status_new, $attribute, $obj_type);
 }
 
