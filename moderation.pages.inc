@@ -96,19 +96,29 @@ function moderation_update_object($obj_id, $obj_type, $attribute, $status) {
       $comment = (array) _comment_load($obj_id);
       if ($attribute == 'status') {
         $op = $status ? 'publish' : 'unpublish';
+        $comment['status'] = $status;
         // Allow modules to respond to the publishing/unpublishing of a comment.
         comment_invoke_comment($comment, $op);
+        // The node comment statistics have to be recalculated.
+        // @TODO: This wouldn't be needed if comment_save would be used for update the values in the database.
+        _comment_update_node_statistics($comment->nid);
+        return TRUE;
       }
       else {
+        $comment['moderate'] = $status;
         // Allow modules to respond to the updating other attributes of a comment.
         comment_invoke_comment($comment, 'update');
+        return TRUE;
       }
       break;
     case 'node':
       $node = node_load(array('nid' => $obj_id));
+      $node->$attribute = $status;
       node_save($node);
+      return TRUE;
       break;
   }
+  return FALSE;
 }
 
 /**
@@ -121,8 +131,7 @@ function moderation_switch_moderation($obj_id, $obj_type) {
   global $user;
   $status = moderation_get_status($obj_type, $obj_id);
   moderation_insert_moderation_log($obj_type, $obj_id, !$status, 'moderate', $user);
-  $result = moderation_update_moderation($obj_type, $obj_id, !$status);
-  moderation_update_object($obj_id, $obj_type, 'moderate', !$status);
+  $result = moderation_update_object($obj_id, $obj_type, 'moderate', !$status);
   return array($result, !$status, 'moderate', $obj_id, $obj_type);
 }
 
