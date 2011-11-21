@@ -21,18 +21,18 @@ REQUIREMENTS
 ------------
 Drupal 6.x
 Views
+Flag (optional)
 
 INSTALLING
 ----------
 1. To install the module copy the 'moderation' folder to your sites/all/modules directory.
 
-2. Go to admin/build/modules. Enable the module.
-Read more about installing modules at http://drupal.org/node/70151
+2. Read more about installing modules at http://drupal.org/node/70151
 
 
 CONFIGURING AND USING
 ---------------------
-1. Go to admin/settings/moderation. Set nodetypes that you want to be moderated.
+1. Go to admin/build/views. Configure the view to suit your needs.
    Click on 'Save configuration' button. 
 
 2. To start moderating CONTENT go to admin/content/node.
