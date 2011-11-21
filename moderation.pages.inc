@@ -14,7 +14,7 @@
 function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
   $js = isset($_REQUEST['js']);
   $token = $_REQUEST['token'];
-
+  $destination = $_REQUEST['destination'];
   // Check for valid token
   // We don't need a token if $op is get
   if (!drupal_valid_token($token, $obj_type .'-'. $obj_id) && $op != 'get') {
@@ -66,7 +66,7 @@ function moderation_callback_switch($obj_type, $obj_id, $op, $attribute) {
     }
     else {
       drupal_set_message(t('The changes have been saved.'));
-      drupal_goto();
+      drupal_goto($destination);
     }
   }
 
