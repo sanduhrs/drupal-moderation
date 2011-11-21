@@ -31,6 +31,14 @@ function moderation_views_data_alter(&$data) {
       'handler' => 'moderation_handler_field_node_title',
     ),
   );
+  $data['node']['comment_status_count'] = array(
+    'title' => t('Comments waiting for moderation'),
+    'help' => t('Displays the number of comments waiting for moderation.'),
+    'group' => t('Moderation'),
+    'field' => array(
+      'handler' => 'moderation_handler_field_comment_status_count',
+    ),
+  );
 
   $data['comments']['subject']['field']['handler'] = 'moderation_handler_field_comment_subject';
   $data['comments']['moderation_links'] = array(
@@ -116,6 +124,9 @@ function moderation_views_handlers() {
         'parent' => 'views_handler_field',
       ),
       'moderation_handler_field_moderation_notes' => array(
+        'parent' => 'views_handler_field',
+      ),
+      'moderation_handler_field_comment_status_count' => array(
         'parent' => 'views_handler_field',
       ),
     ),
