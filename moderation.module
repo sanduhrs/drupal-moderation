@@ -361,7 +361,7 @@ function theme_moderation_item_links($entity, $entity_type, $moderation, $token)
     $edit_link = $entity_type . '/edit' . '/' . $entity->id;
   }
   $output .= '<span id="moderation-operations-'. $entity->id .'" class="moderation-attribute moderation-operations">' . "\n";
-  $output .= l(t('edit'), $edit_link, array('query' => drupal_get_destination())) . "\n";
+  $output .= l(t('edit'), $edit_link, array('attributes' => array('class' => 'moderation-edit-' . $entity_type), 'query' => drupal_get_destination())) . "\n";
   $output .= '</span>' . "\n";
 
   $output .= '<span class="moderation-attribute moderation-moderate">' . "\n";
