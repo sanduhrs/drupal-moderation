@@ -175,7 +175,7 @@ function moderation_get_preview($obj_id, $obj_type) {
       if ($comment = _comment_load($obj_id)) {
         $_GET['q'] = 'node/'. $comment->nid;
         $node = node_load($comment->nid);
-        $data = '<div class="preview">'. theme('comment_view', $comment, $node) .'</div>';
+        $data = theme('moderation_comment_view', $comment, $node);
       }
       break;
     case 'thread':
