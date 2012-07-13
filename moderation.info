@@ -1,0 +1,11 @@
+name = Moderation
+description = TODO: Description
+core = 7.x
+
+dependencies[] = entity
+dependencies[] = views
+
+files[] = moderation.admin.inc
+files[] = moderation_type.admin.inc
+files[] = views/moderation.views.inc
+files[] = views/moderation_handler_actions_field.inc

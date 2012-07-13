@@ -1,0 +1,70 @@
+<?php
+
+/**
+ * @file
+ * Contains a Views field handler to take care of displaying the entity specific
+ * actions.
+ */
+class moderation_handler_actions_field extends views_handler_field {
+
+  function construct() {
+    parent::construct();
+
+    $this->additional_fields['moderation_id'] = 'moderation_id';
+    $this->additional_fields['type'] = 'type';
+  }
+
+  function option_definition() {
+    $options = parent::option_definition();
+
+    $options['text'] = array('default' => '', 'translatable' => TRUE);
+
+    return $options;
+  }
+
+  function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
+
+    $form['text'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Text to display'),
+      '#default_value' => $this->options['text'],
+    );
+  }
+
+  function query() {
+    $this->ensure_my_table();
+    $this->add_additional_fields();
+  }
+
+  function render($values) {
+
+    drupal_add_library('system', 'drupal.ajax');
+    $output = '';
+    // Not the nicest way.
+    $moderation_type = preg_replace('/^page_/', '', $this->view->current_display);
+    $moderation = moderation_type_load($moderation_type);
+    $moderation_type_actions = $moderation->data['container']['actions'];
+    $moderation_actions = moderation_action_list();
+
+    $entity_id = $values->node_moderation_nid;
+    $entity_type = $moderation->data['entity_type'];
+
+    $callbacks = array();
+    $labels = array();
+
+    foreach ($moderation_type_actions as $moderation_type_action_name => $value) {
+      if (!is_numeric($value)) {
+        $label = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['label'];
+        $callbacks[$moderation_type_action_name] = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
+        $callback = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
+        // Callback page with entity arguments.
+        $output .= '<div id="myDiv_' . $entity_id . '"></div><div>' . l($label, 'moderation_ajax_actions_callback/nojs/' . $callback . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
+        $output .= ' ';
+      }
+    }
+
+    return $output;
+  }
+
+}
