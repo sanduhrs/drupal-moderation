@@ -58,26 +58,6 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     }
   }
 
-  $actions = moderation_action_list();
-  $entity_actions = array();
-
-  foreach ($actions as $entity_type => $moderate_actions) {
-    foreach ($moderate_actions as $action_id => $action) {
-      if ($action['type'] == 'toggle') {
-        // Filter redundance.
-        if (isset($entity_actions[$entity_type]) && !array_key_exists($actions[$entity_type][$action_id]['toggle action'], $entity_actions[$entity_type])) {
-          $entity_actions[$entity_type][$action_id] = $action['label'] . ' | ' . $actions[$entity_type][$actions[$entity_type][$action_id]['toggle action']]['label'];
-        }
-        elseif (!isset($entity_actions[$entity_type])) {
-          $entity_actions[$entity_type][$action_id] = $action['label'] . ' | ' . $actions[$entity_type][$actions[$entity_type][$action_id]['toggle action']]['label'];
-        }
-      }
-      else {
-        $entity_actions[$entity_type][$action_id] = $action['label'];
-      }
-    }
-  }
-
   $rule_configs = entity_load('rules_config');
   $moderation_rule_configs = array();
   foreach ($rule_configs as $rule_config) {
@@ -111,6 +91,13 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
       'method' => 'replace',
     ),
   );
+
+  $actions = moderation_action_list($active_entity_type);
+  $entity_actions = array();
+  foreach ($actions as $action_id => $action) {
+    $entity_actions[$action_id] = $action['label'];
+  }
+  
   $form['data']['container'] = array(
     '#type' => 'container',
     '#attributes' => array('id' => 'moderation-type-container'),
@@ -130,7 +117,7 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#default_value' => isset($moderation_type->data['container']['actions']) ? $moderation_type->data['container']['actions'] : array(),
     '#description' => t('The bundle type to be moderated.'),
     '#required' => TRUE,
-    '#options' => $entity_actions[$active_entity_type],
+    '#options' => $entity_actions,
   );
 
   $form['actions'] = array('#type' => 'actions');

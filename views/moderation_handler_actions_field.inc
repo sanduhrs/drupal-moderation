@@ -60,15 +60,26 @@ class moderation_handler_actions_field extends views_handler_field {
 
     $callbacks = array();
     $labels = array();
+//
+//    foreach ($moderation_type_actions as $moderation_type_action_name => $value) {
+//      if (!is_numeric($value)) {
+//        $label = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['label'];
+//        $callbacks[$moderation_type_action_name] = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
+//        $callback = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
+//        // Callback page with entity arguments.
+//        $output .= '<div id="myDiv_' . $entity_id . '"></div><div>' . l($label, 'moderation_ajax_actions_callback/nojs/' . $callback . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
+//        $output .= ' ';
+//      }
+//    }
 
-    foreach ($moderation_type_actions as $moderation_type_action_name => $value) {
-      if (!is_numeric($value)) {
-        $label = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['label'];
-        $callbacks[$moderation_type_action_name] = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
-        $callback = $moderation_actions[$moderation->data['entity_type']][$moderation_type_action_name]['callback'];
-        // Callback page with entity arguments.
-        $output .= '<div id="myDiv_' . $entity_id . '"></div><div>' . l($label, 'moderation_ajax_actions_callback/nojs/' . $callback . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
-        $output .= ' ';
+    $output = '';
+    $moderation_type = preg_replace('/^page_/', '', $this->view->current_display);
+    $moderation = moderation_type_load($moderation_type);
+
+    foreach (moderation_action_list($entity_type) as $callback => $action) {
+      // TODO: nur die ausgewählten. => TODO: auswählbar machen.
+      if (isset($action['event']) && (isset($moderation->data['container']['actions'][$callback]) && !empty($moderation->data['container']['actions'][$callback]))) {
+        $output .= '<div id="moderation_action_' . $entity_id . '_' . $action['event'] . '">' . l($action['label'], 'moderation_ajax_actions_callback/nojs/' . $action['event'] . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
       }
     }
 

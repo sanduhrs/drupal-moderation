@@ -1,5 +1,5 @@
 <?php
-
+// TODO: make this work with all entities.
 /**
  * Extend views_handler_field_node class
  */

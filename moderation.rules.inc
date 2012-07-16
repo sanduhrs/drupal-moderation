@@ -1,54 +1,75 @@
 <?php
 
+/**
+ * Implementation of hook_rules_event_info().
+ */
 function moderation_rules_event_info() {
-  return array(
-    'moderation_on_moderate' => array(
-      'label' => t('On moderate'),
-      'group' => t('Moderation'),
-      'variables' => array(
-        'entity' => array(
-          'type' => 'entity',
-          'label' => t('Entity'),
-        ),
+  foreach (moderation_action_list() as $entity_type => $action) {
+    foreach ($action as $key => $value) {
+      if (isset($value['event'])) {
+        $events[$value['event']] = array(
+          'label' => $value['event'],
+          'group' => t('Moderation'),
+          'variables' => array(
+            'entity' => array(
+              'type' => 'entity',
+              'label' => t('Entity'),
+            ),
+          ),
+        );
+      }
+    }
+  }
+  $events['moderation_on_moderate'] = array(
+    'label' => t('On moderate'),
+    'group' => t('Moderation'),
+    'variables' => array(
+      'entity' => array(
+        'type' => 'entity',
+        'label' => t('Entity'),
       ),
     ),
   );
+  return $events;
 }
 
 /**
- * implementation of hook_rules_condition_info()
+ * Implementation of hook_rules_action_info().
  */
-function moderation_rules_condition_info() {
+function moderation_rules_action_info() {
   return array(
-    'moderation_is_of_type' => array(
-      'label' => t('Moderation is of type'),
+    'moderations_action_moderate' => array(
+      'label' => t('Moderate'),
       'group' => t('Moderation'),
       'parameter' => array(
         'entity' => array(
           'type' => 'entity',
           'label' => t('Entity'),
-          'description' => t('Specifies the entity for which to evaluate the condition.'),
-        ),
-        'type' => array(
-          'type' => 'token',
-          'label' => t('Entity type'),
-          'description' => t('The entity type to check for.'),
-          'options list' => 'rules_entity_action_type_options',
-          'restriction' => 'input',
         ),
       ),
+      'module' => 'moderation',
     ),
   );
 }
 
 /**
- * Assert the selected entity type.
+ * Callback function for moderation_rules_action_info().
+ * This function will create an moderation entity, holding the relation of the
+ * moderated entity.
+ *
+ * @param type $entity
  */
-function moderation_is_of_type($entity, $entity_type) {
+function moderations_action_moderate($entity) {
+  // Fetch entity out of the entity_metadata_wrapper.
+  $entity_type = $entity->type();
+  $entity = $entity->value();
   $entity_info = entity_get_info($entity_type);
-  $bundle_key = $entity_info['entity keys']['bundle'];
+  $entity_id = $entity->{$entity_info['entity keys']['id']};
 
-  if ($type = $entity->$bundle_key) {
-    return array('entity' => array('type' => $type));
-  }
+  // Create moderation entity with the relation we need.
+  $moderation = new Moderation();
+  $moderation->entity_id = $entity_id;
+  $moderation->entity_type = $entity_type;
+
+  $moderation->save();
 }
