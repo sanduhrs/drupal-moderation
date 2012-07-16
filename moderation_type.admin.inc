@@ -95,9 +95,9 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
   $actions = moderation_action_list($active_entity_type);
   $entity_actions = array();
   foreach ($actions as $action_id => $action) {
-    $entity_actions[$action_id] = $action['label'];
+    $entity_actions[$action_id] = $label = isset($action['label callback']) ? call_user_func($action['label callback'], $action, $active_entity_type) : moderation_action_label($action, $active_entity_type);
   }
-  
+
   $form['data']['container'] = array(
     '#type' => 'container',
     '#attributes' => array('id' => 'moderation-type-container'),

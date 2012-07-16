@@ -33,14 +33,6 @@ function moderation_entity_info() {
     'creation callback' => 'moderation_create',
     'access callback' => 'moderation_access',
     'module' => 'moderation',
-    // The information below is used by the ModerationUIController
-    // (which extends the EntityDefaultUIController).
-    'admin ui' => array(
-      'path' => 'admin/content/moderations',
-      'file' => 'moderation.admin.inc',
-      'controller class' => 'ModerationUIController',
-      'menu wildcard' => '%moderation',
-    ),
   );
   // The entity that holds information about the entity types.
   $return['moderation_type'] = array(
@@ -281,6 +273,15 @@ function moderation_views_api() {
  */
 function moderation_menu() {
   $items = array();
+  
+  $items['admin/content/moderations'] = array(
+    'title' => 'Moderations',
+    'description' => 'Add edit and update moderations.',
+    'page callback' => 'moderation_parent_menu_callback',
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   $items['moderation_ajax_actions_callback/%/%/%'] = array(
     'page callback' => 'moderation_ajax_actions_callback',
     'page arguments' => array(1, 2, 3, 4),
@@ -302,19 +303,25 @@ function moderation_menu() {
 /**
  * Ajax callback for moderation actions.
  */
-// TODO: Get this party started!
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
   if ($type == 'ajax') {
 
     $entity = call_user_func($entity_type . '_load', $entity_id);
     rules_invoke_event($event, entity_metadata_wrapper($entity_type, $entity));
 
-    $output = t($event . " proceeded");
-    // TODO: toggle switch
+    $actions = moderation_action_list($entity_type);
+    foreach ($actions as $action_id => $action) {
+      if ($action['event'] == $event) {
+        $label = isset($action['label callback']) ? call_user_func($action['label callback'], $action, $entity_type, $entity_id) : moderation_action_label($action, $entity_type, $entity_id);
+        break;
+      }
+    }
 
     $commands = array();
-    $commands[] = ajax_command_replace('#moderation_action_' . $entity_id . '_' . $event, 'foo');
-//    $commands[] = ajax_command_append('#moderation_action_' . $entity_id, $output);
+
+    $link = '<div id="moderation_action_' . $entity_id . '_' . $event . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $event . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
+    $commands[] = ajax_command_replace('#moderation_action_' . $entity_id . '_' . $event, $link);
+
     $page = array(
       '#type' => 'ajax',
       '#commands' => $commands,
@@ -325,6 +332,13 @@ function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, 
     $output = t("This is some content delivered via a page load.");
     return $output;
   }
+}
+
+/**
+ * Callback for moderation menu item.
+ */
+function moderation_parent_menu_callback() {
+  drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
 }
 
 /**
@@ -364,24 +378,64 @@ function moderation_moderation_action_info() {
   $moderation_actions['every_entity']['moderation_moderate_entity'] = array(
     'type' => 'toggle',
     'event' => 'moderation_on_moderate',
-    'label' => 'moderate',
+    'label callback' => 'moderation_moderate_action_label',
+    'label data' => array(
+      'data' => 'moderate',
+      'labels' => array(
+        0 => 'moderate',
+        1 => 'unmoderate',
+      ),
+    ),
     'callback' => 'moderate',
   );
-//  $moderation_actions['every_entity']['moderation_unmoderate_entity'] = array(
-//    'type' => 'toggle',
-//    'toggle action' => 'moderation_moderate_entity',
-//    'label' => t('unmoderate'),
-//    'callback' => 'moderation_action_unmoderate',
-//  );
 
   return $moderation_actions;
 }
 
-function moderation_action_moderate($entity) {
-//  dsm($entity);
-  rules_invoke_event('moderation_on_moderate', $entity);
-//  rules_invoke_event_by_args('moderation_on_moderate', array('entity' => $entity));
-  dsm('mkay, ick bin jetzt moderiert alda');
+/**
+ * Label callback for the moderation action link.
+ */
+function moderation_moderate_action_label($action, $entity_type, $entity_id = null) {
+  if (isset($entity_id)) {
+    $result = db_select('moderation', 'm')
+            ->fields('m', array('moderation_id'))
+            ->condition('entity_type', $entity_type, '=')
+            ->condition('entity_id', $entity_id, '=')
+            ->execute()
+            ->fetchAssoc();
+    if (isset($result['moderation_id'])) {
+      return 'unmoderate';
+    }
+    else {
+      return 'moderate';
+    }
+  }
+  else {
+    return 'moderate | unmoderate';
+  }
+}
+
+/**
+ * Generic label callback for action links.
+ */
+function moderation_action_label($action, $entity_type, $entity_id = null) {
+  if (isset($entity_id)) {
+    $data = $action['label data']['data'];
+    $entity = reset(entity_load($entity_type, array($entity_id)));
+
+    foreach ($action['label data']['labels'] as $condition => $label) {
+      if ($condition == $entity->{$data}) {
+        return $label;
+      }
+    }
+  }
+  else {
+    $output = '';
+    foreach ($action['label data']['labels'] as $condition => $label) {
+      $output .= $label . ' | ';
+    }
+    return substr($output, 0, -2);
+  }
 }
 
 /**
@@ -393,8 +447,13 @@ function node_moderation_action_info() {
     'node_publish_action' => array(
       'type' => 'toggle',
       'event' => 'moderation_publish',
-      'label' => 'publish',
-      'callback' => 'node_publish_action',
+      'label data' => array(
+        'data' => 'status',
+        'labels' => array(
+          0 => 'publish',
+          1 => 'unpublish',
+        ),
+      ),
       'action' => array(
         'if' => array(
           'data' => array(
@@ -418,16 +477,16 @@ function node_moderation_action_info() {
         ),
       ),
     ),
-//    'node_unpublish_action' => array(
-//      'type' => 'toggle',
-//      'toggle action' => 'node_publish_action',
-//      'label' => 'unpublish',
-//      'callback' => 'node_unpublish_action'
-//    ),
     'node_make_sticky_action' => array(
       'type' => 'toggle',
       'event' => 'moderation_sticky',
-      'label' => 'sticky',
+      'label data' => array(
+        'data' => 'sticky',
+        'labels' => array(
+          0 => 'make sticky',
+          1 => 'undo sticky',
+        ),
+      ),
       'callback' => 'node_make_sticky_action',
       'action' => array(
         'if' => array(
@@ -452,12 +511,6 @@ function node_moderation_action_info() {
         ),
       ),
     ),
-//    'node_make_unsticky_action' => array(
-//      'type' => 'toggle',
-//      'toggle action' => 'node_make_sticky_action',
-//      'label' => 'unsticky',
-//      'callback' => 'node_make_unsticky_action',
-//    ),
   );
   return $node_actions;
 }

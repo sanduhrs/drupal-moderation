@@ -66,10 +66,25 @@ function moderations_action_moderate($entity) {
   $entity_info = entity_get_info($entity_type);
   $entity_id = $entity->{$entity_info['entity keys']['id']};
 
-  // Create moderation entity with the relation we need.
-  $moderation = new Moderation();
-  $moderation->entity_id = $entity_id;
-  $moderation->entity_type = $entity_type;
+  // Check whether there is already a moderation entity.
+  $result = db_select('moderation', 'm')
+          ->fields('m', array('moderation_id'))
+          ->condition('entity_type', $entity_type, '=')
+          ->condition('entity_id', $entity_id, '=')
+          ->execute()
+          ->fetchAssoc();
 
-  $moderation->save();
+  if (isset($result['moderation_id'])) {
+    $moderation = moderation_load($result['moderation_id']);
+    moderation_delete($moderation);
+  }
+  else {
+    // Create moderation entity with the relation we need.
+    $moderation = new Moderation();
+    $moderation->entity_id = $entity_id;
+    $moderation->entity_type = $entity_type;
+    $moderation->type = 'rule';
+
+    $moderation->save();
+  }
 }

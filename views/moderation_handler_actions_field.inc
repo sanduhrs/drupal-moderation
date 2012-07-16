@@ -77,9 +77,11 @@ class moderation_handler_actions_field extends views_handler_field {
     $moderation = moderation_type_load($moderation_type);
 
     foreach (moderation_action_list($entity_type) as $callback => $action) {
-      // TODO: nur die ausgewählten. => TODO: auswählbar machen.
       if (isset($action['event']) && (isset($moderation->data['container']['actions'][$callback]) && !empty($moderation->data['container']['actions'][$callback]))) {
-        $output .= '<div id="moderation_action_' . $entity_id . '_' . $action['event'] . '">' . l($action['label'], 'moderation_ajax_actions_callback/nojs/' . $action['event'] . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
+
+        $label = isset($action['label callback']) ? call_user_func($action['label callback'], $action, $entity_type, $entity_id) : moderation_action_label($action, $entity_type, $entity_id);
+
+        $output .= '<div id="moderation_action_' . $entity_id . '_' . $action['event'] . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $action['event'] . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
       }
     }
 
