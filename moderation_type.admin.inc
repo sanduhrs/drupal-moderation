@@ -65,9 +65,6 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
       $moderation_rule_configs[$rule_config->name] = $rule_config;
     }
   }
-  // TODO: user rules instead.
-//  dsm($rule_config);
-//  dsm($moderation_rule_configs);
 
   $form['data']['#tree'] = TRUE;
 
@@ -127,7 +124,6 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#weight' => 40,
   );
 
-
   return $form;
 }
 
@@ -144,7 +140,8 @@ function moderation_type_container_callback($form, &$form_state) {
 function moderation_type_form_submit(&$form, &$form_state) {
   $moderation_type = entity_ui_form_submit_build_entity($form, $form_state);
   $moderation_type->save();
-  $form_state['redirect'] = 'admin/structure/moderation_types';
+  // Redirect directly to the moderation queue.
+  $form_state['redirect'] = 'admin/content/moderations/' . $moderation_type->type;
 }
 
 /**

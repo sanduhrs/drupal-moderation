@@ -2,6 +2,7 @@
 
 /**
  * Implements hook_default_rules_configuration().
+ * TODO: make this without the import.
  */
 function moderation_default_rules_configuration() {
   $configs = array();
@@ -9,10 +10,9 @@ function moderation_default_rules_configuration() {
     foreach ($action as $key => $value) {
       if (!in_array($key, $configs) && isset($value['action'])) {
         $event = isset($value['event']) ? $value['event'] : 'moderation_on_moderate';
-        dsm($value['action']['if']);
         $rule = rules_import('
         { "' . $key . '" : {
-            "LABEL" : "' . $value['label'] . '",
+            "LABEL" : "' . $value['event'] . '",
             "PLUGIN" : "reaction rule",
             "REQUIRES" : [ "rules", "devel", "rules_conditional", "moderation" ],
             "ON" : [ "' . $event . '" ],

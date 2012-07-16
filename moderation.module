@@ -14,7 +14,7 @@ function moderation_entity_info() {
     // The entity class and controller class extend the classes provided by the
     // Entity API.
     'entity class' => 'Moderation',
-    'controller class' => 'ModerationController',
+    'controller class' => 'EntityAPIController',
     'base table' => 'moderation',
     'fieldable' => FALSE,
     'entity keys' => array(
@@ -273,7 +273,7 @@ function moderation_views_api() {
  */
 function moderation_menu() {
   $items = array();
-  
+
   $items['admin/content/moderations'] = array(
     'title' => 'Moderations',
     'description' => 'Add edit and update moderations.',
@@ -305,10 +305,11 @@ function moderation_menu() {
  */
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
   if ($type == 'ajax') {
-
-    $entity = call_user_func($entity_type . '_load', $entity_id);
+    // Trigger the rule.
+    $entity = entity_load($entity_type, $entity_id);
     rules_invoke_event($event, entity_metadata_wrapper($entity_type, $entity));
 
+    // Toggle the lable if required.
     $actions = moderation_action_list($entity_type);
     foreach ($actions as $action_id => $action) {
       if ($action['event'] == $event) {
@@ -319,7 +320,7 @@ function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, 
 
     $commands = array();
 
-    $link = '<div id="moderation_action_' . $entity_id . '_' . $event . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $event . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
+    $link = '<span id="moderation_action_' . $entity_id . '_' . $event . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $event . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')))) . '</span>';
     $commands[] = ajax_command_replace('#moderation_action_' . $entity_id . '_' . $event, $link);
 
     $page = array(
@@ -328,21 +329,10 @@ function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, 
     );
     ajax_deliver($page);
   }
-  else {
-    $output = t("This is some content delivered via a page load.");
-    return $output;
-  }
 }
 
 /**
- * Callback for moderation menu item.
- */
-function moderation_parent_menu_callback() {
-  drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
-}
-
-/**
- * moderation_action_list
+ * TODO: good description and moderation.api
  */
 function moderation_action_list($entity_action_type = null) {
 
@@ -371,7 +361,30 @@ function moderation_action_list($entity_action_type = null) {
 }
 
 /**
- * Implements hook_moderation_action_info
+ * Generic label callback for action links.
+ */
+function moderation_action_label($action, $entity_type, $entity_id = null) {
+  if (isset($entity_id)) {
+    $data = $action['label data']['data'];
+    $entity = reset(entity_load($entity_type, array($entity_id)));
+
+    foreach ($action['label data']['labels'] as $condition => $label) {
+      if ($condition == $entity->{$data}) {
+        return $label;
+      }
+    }
+  }
+  else {
+    $output = '';
+    foreach ($action['label data']['labels'] as $condition => $label) {
+      $output .= $label . ' | ';
+    }
+    return substr($output, 0, -2);
+  }
+}
+
+/**
+ * Implements hook_moderation_action_info for the moderation entity.
  */
 function moderation_moderation_action_info() {
   $moderation_actions = array();
@@ -416,30 +429,7 @@ function moderation_moderate_action_label($action, $entity_type, $entity_id = nu
 }
 
 /**
- * Generic label callback for action links.
- */
-function moderation_action_label($action, $entity_type, $entity_id = null) {
-  if (isset($entity_id)) {
-    $data = $action['label data']['data'];
-    $entity = reset(entity_load($entity_type, array($entity_id)));
-
-    foreach ($action['label data']['labels'] as $condition => $label) {
-      if ($condition == $entity->{$data}) {
-        return $label;
-      }
-    }
-  }
-  else {
-    $output = '';
-    foreach ($action['label data']['labels'] as $condition => $label) {
-      $output .= $label . ' | ';
-    }
-    return substr($output, 0, -2);
-  }
-}
-
-/**
- * Implements hook_moderation_action_info
+ * Implements hook_moderation_action_info for node entity.
  */
 function node_moderation_action_info() {
   $node_actions = array();
@@ -515,6 +505,9 @@ function node_moderation_action_info() {
   return $node_actions;
 }
 
+/**
+ * Callback for the moderation_handler_field_node_title.
+ */
 function moderation_entity_view($type = 'ajax', $entity_type, $entity_id) {
   $output = '';
   if ($type == 'ajax') {
@@ -522,18 +515,21 @@ function moderation_entity_view($type = 'ajax', $entity_type, $entity_id) {
     $entity = call_user_func($entity_type . '_load', $entity_id);
     $entities = array($entity);
 
-    $entity_view = entity_view($entity_type, $entities, $view_mode = 'teaser', $langcode = NULL, $page = NULL);
-    $output .= render($entity_view);
+    $entity_info = entity_get_info($entity_type);
 
-    $entity_view = entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL);
-    $output .= render($entity_view);
+    if (isset($entity_info['view modes']['teaser'])) {
+      $entity_view = entity_view($entity_type, $entities, $view_mode = 'teaser', $langcode = NULL, $page = NULL);
+      $output .= render($entity_view);
+    }
+
+    if (isset($entity_info['view modes']['full'])) {
+      $entity_view = entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL);
+      $output .= render($entity_view);
+    }
 
     $output .= '</div>';
-    dsm(entity_get_info());
-    // TODO: toggle switch
+
     $commands = array();
-    // See ajax_example_advanced.inc for more details on the available commands
-    // and how to use them.
     $commands[] = ajax_command_remove('.moderation_title_wrapper');
     $commands[] = ajax_command_append('#title_' . $entity_id, $output);
     $page = array(
@@ -541,6 +537,18 @@ function moderation_entity_view($type = 'ajax', $entity_type, $entity_id) {
       '#commands' => $commands,
     );
     ajax_deliver($page);
+  }
+}
+
+/**
+ * Callback for moderation menu item.
+ */
+function moderation_parent_menu_callback() {
+  if (moderation_get_types()) {
+    drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
+  }
+  else {
+    return t('Theire have no moderation entities been created yet. You can create a new moderation entities <a href="' . base_path() . 'admin/structure/moderation_types">here</a>.');
   }
 }
 
@@ -576,81 +584,10 @@ class ModerationType extends Entity {
 /**
  * The Controller for Moderation entities
  */
-class ModerationController extends EntityAPIController {
-
-  public function __construct($entityType) {
-    parent::__construct($entityType);
-  }
-
-  /**
-   * Create a moderation - we first set up the values that are specific
-   * to our moderation schema but then also go through the EntityAPIController
-   * function.
-   *
-   * @param $type
-   *   The machine-readable type of the moderation.
-   *
-   * @return
-   *   A moderation object with all default fields initialized.
-   */
-  public function create(array $values = array()) {
-    // Add values that are specific to our Moderation
-    $values += array(
-      'moderation_id' => '',
-      'is_new' => TRUE,
-      'title' => '',
-      'created' => '',
-      'changed' => '',
-      'data' => '',
-    );
-
-    $moderation = parent::create($values);
-    return $moderation;
-  }
-
-  /**
-   * Overriding the buldContent function to add entity specific fields
-   */
-  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
-    $content = parent::buildContent($entity, $view_mode, $langcode, $content);
-    $content['moderation_sample_data'] = array(
-      '#markup' => $entity,
-    );
-
-    return $content;
-  }
-
-}
-
-/**
- * The Controller for Moderation entities
- */
 class ModerationTypeController extends EntityAPIControllerExportable {
 
   public function __construct($entityType) {
     parent::__construct($entityType);
-  }
-
-  /**
-   * Create a moderation type - we first set up the values that are specific
-   * to our moderation type schema but then also go through the EntityAPIController
-   * function.
-   *
-   * @param $type
-   *   The machine-readable type of the moderation.
-   *
-   * @return
-   *   A moderation type object with all default fields initialized.
-   */
-  public function create(array $values = array()) {
-    // Add values that are specific to our Moderation
-    $values += array(
-      'id' => '',
-      'is_new' => TRUE,
-      'data' => '',
-    );
-    $moderation_type = parent::create($values);
-    return $moderation_type;
   }
 
 }

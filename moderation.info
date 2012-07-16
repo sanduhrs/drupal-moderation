@@ -2,6 +2,7 @@ name = Moderation
 description = An entity moderation queue.
 core = 7.x
 
+;http://drupal.org/node/1435418
 dependencies[] = entity
 dependencies[] = views
 
@@ -9,4 +10,4 @@ files[] = moderation.admin.inc
 files[] = moderation_type.admin.inc
 files[] = views/moderation.views.inc
 files[] = views/moderation_handler_actions_field.inc
-files[] = views/moderation_handler_field_node_title.inc
+files[] = views/moderation_handler_entity_field_label.inc

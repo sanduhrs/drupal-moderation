@@ -16,10 +16,12 @@ function moderation_views_data_alter(&$data) {
       'handler' => 'moderation_handler_actions_field',
     ),
   );
-  $data['node']['title']['field']['handler'] = 'moderation_handler_field_node_title';
 
   $entity_infos = entity_get_info();
   foreach ($entity_infos as $entity_type => $info) {
+
+    $data['views_entity_' . $info['base table']]['label']['field']['handler'] = 'moderation_handler_entity_field_label';
+
     if ($entity_type != 'moderation' && $entity_type != 'moderation_type') {
       // Relationship from moderation to all entity types.
       // A not relation to use with filter moderation.entity_id = NULL.
@@ -182,6 +184,14 @@ function moderation_views_default_views() {
     $handler->display->display_options['fields'][$id]['link_to_comment'] = 1;
     $handler->display->display_options['fields'][$id]['link_to_node'] = 0;
     $handler->display->display_options['path'] = 'admin/content/moderations/' . $info->type;
+
+    /* Field: Node: Entity label */
+    $handler->display->display_options['fields']['label']['id'] = 'label';
+    $handler->display->display_options['fields']['label']['table'] = 'views_entity_' . $entity_infos[$info->data['entity_type']]['base table'];
+    $handler->display->display_options['fields']['label']['field'] = 'label';
+    $handler->display->display_options['fields']['label']['relationship'] = $info->data['entity_type'];
+    $handler->display->display_options['fields']['label']['link_to_entity'] = 1;
+    $handler->display->display_options['fields']['label']['ajax_preview'] = TRUE;
 
     /* Field: Moderation: Actions */
     $handler->display->display_options['fields']['actions']['id'] = 'actions';
