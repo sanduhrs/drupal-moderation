@@ -1,13 +1,6 @@
 <?php
 
 /**
- * @file
- * Sets up the base table for our entity and a table to store information about
- * the entity types.
- */
-
-
-/**
  * Implements hook_schema().
  */
 function moderation_schema() {

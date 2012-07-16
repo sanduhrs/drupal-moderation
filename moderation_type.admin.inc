@@ -1,11 +1,6 @@
 <?php
 
 /**
- * @file
- * Moderation type editing UI.
- */
-
-/**
  * UI controller.
  */
 class ModerationTypeUIController extends EntityDefaultUIController {
@@ -45,7 +40,6 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#type' => 'machine_name',
     '#default_value' => isset($moderation_type->type) ? $moderation_type->type : '',
     '#maxlength' => 32,
-//    '#disabled' => $moderation_type->isLocked() && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'moderation_get_types',
       'source' => array('label'),
@@ -86,11 +80,12 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
 
   $rule_configs = entity_load('rules_config');
   $moderation_rule_configs = array();
-  foreach($rule_configs as $rule_config) {
-    if(in_array('moderation', $rule_config->dependencies)) {
+  foreach ($rule_configs as $rule_config) {
+    if (in_array('moderation', $rule_config->dependencies)) {
       $moderation_rule_configs[$rule_config->name] = $rule_config;
     }
   }
+  // TODO: user rules instead.
 //  dsm($rule_config);
 //  dsm($moderation_rule_configs);
 

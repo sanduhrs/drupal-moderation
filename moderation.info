@@ -1,5 +1,5 @@
 name = Moderation
-description = TODO: Description
+description = An entity moderation queue.
 core = 7.x
 
 dependencies[] = entity
@@ -9,3 +9,4 @@ files[] = moderation.admin.inc
 files[] = moderation_type.admin.inc
 files[] = views/moderation.views.inc
 files[] = views/moderation_handler_actions_field.inc
+files[] = views/moderation_handler_field_node_title.inc

@@ -8,7 +8,6 @@ function moderation_rules_event_info() {
       'variables' => array(
         'entity' => array(
           'type' => 'entity',
-          'bundle' => 'node',
           'label' => t('Entity'),
         ),
       ),

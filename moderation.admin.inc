@@ -1,15 +1,6 @@
 <?php
 
 /**
- * @file
- * Moderation editing UI.
- *
- * We make very little use of the EntityAPI interface for this - preferring instead to use
- * views. That offers more flexibility to change a UI that will, more often than not,
- * be end-user facing.
- */
-
-/**
  * UI controller.
  */
 class ModerationUIController extends EntityDefaultUIController {
@@ -33,23 +24,6 @@ class ModerationUIController extends EntityDefaultUIController {
       'file' => 'system.admin.inc',
       'type' => MENU_DEFAULT_LOCAL_TASK,
     );
-
-    // Generate a local tast for every moderateable entity.
-//    foreach (moderation_get_types() as $type) {
-//      $items[$this->path . '/' . $type->type] = array(
-//        'title' => $type->label,
-//        'description' => 'Add edit and update moderations.',
-//        'page callback' => 'system_admin_menu_block_page',
-//        'access arguments' => array('access administration pages'),
-////        'access callback' => 'moderation_access',
-////        'access arguments' => array('edit', 'edit ' . $type->type),
-//        'file path' => drupal_get_path('module', 'system'),
-//        'file' => 'system.admin.inc',
-//        'type' => MENU_LOCAL_TASK,
-//      );
-//    }
-
-
 
     // Change the overview menu type for the list of moderations.
     $items[$this->path]['type'] = MENU_LOCAL_TASK;
@@ -359,4 +333,3 @@ function moderation_set_breadcrumb() {
 
   drupal_set_breadcrumb($breadcrumb);
 }
-

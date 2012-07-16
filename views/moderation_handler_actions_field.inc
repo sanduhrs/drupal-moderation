@@ -46,9 +46,17 @@ class moderation_handler_actions_field extends views_handler_field {
     $moderation = moderation_type_load($moderation_type);
     $moderation_type_actions = $moderation->data['container']['actions'];
     $moderation_actions = moderation_action_list();
-
-    $entity_id = $values->node_moderation_nid;
     $entity_type = $moderation->data['entity_type'];
+
+    $entity_info = entity_get_info($entity_type);
+    $entity_type_id_key = $entity_info['entity keys']['id'];
+
+    $base_table = $entity_info['base table'];
+
+    $entity_id_key = $base_table . '_moderation_' . $entity_type_id_key;
+    if (isset($entity_id_key)) {
+      $entity_id = $values->$entity_id_key;
+    }
 
     $callbacks = array();
     $labels = array();

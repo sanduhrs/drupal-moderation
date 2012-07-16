@@ -1,12 +1,6 @@
 <?php
 
 /**
- * @file
- * Module for the Moderation Entity - a starting point to create your own Entity
- * and associated administration interface
- */
-
-/**
  * Implement hook_entity_info().
  *
  * We define two entities here - the actual entity that will hold our domain
@@ -18,7 +12,7 @@ function moderation_entity_info() {
   $return['moderation'] = array(
     'label' => t('Moderation'),
     // The entity class and controller class extend the classes provided by the
-// Entity API
+    // Entity API.
     'entity class' => 'Moderation',
     'controller class' => 'ModerationController',
     'base table' => 'moderation',
@@ -29,7 +23,8 @@ function moderation_entity_info() {
     ),
     // Bundles are defined by the moderation types below
     'bundles' => array(),
-    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    // Bundle keys tell the FieldAPI how to extract information from the bundle
+    // objects.
     'bundle keys' => array(
       'bundle' => 'type',
     ),
@@ -38,7 +33,8 @@ function moderation_entity_info() {
     'creation callback' => 'moderation_create',
     'access callback' => 'moderation_access',
     'module' => 'moderation',
-    // The information below is used by the ModerationUIController (which extends the EntityDefaultUIController)
+    // The information below is used by the ModerationUIController
+    // (which extends the EntityDefaultUIController).
     'admin ui' => array(
       'path' => 'admin/content/moderations',
       'file' => 'moderation.admin.inc',
@@ -46,7 +42,7 @@ function moderation_entity_info() {
       'menu wildcard' => '%moderation',
     ),
   );
-// The entity that holds information about the entity types
+  // The entity that holds information about the entity types.
   $return['moderation_type'] = array(
     'label' => t('Moderation Type'),
     'entity class' => 'ModerationType',
@@ -76,10 +72,10 @@ function moderation_entity_info() {
 /**
  * Implements hook_entity_info_alter().
  *
- * We are adding the info about the moderation types via a hook to avoid a recursion
- * issue as loading the moderation types requires the entity info as well.
+ * We are adding the info about the moderation types via a hook to avoid a
+ * recursion issue as loading the moderation types requires the entity info as
+ * well.
  *
- * @todo This needs to be improved
  */
 function moderation_entity_info_alter(&$entity_info) {
   foreach (moderation_get_types() as $type => $info) {
@@ -99,8 +95,6 @@ function moderation_entity_info_alter(&$entity_info) {
  * Implements hook_permission().
  */
 function moderation_permission() {
-// We set up permisssions to manage entity types, manage all entities and the
-// permissions for each individual entity
   $permissions = array(
     'administer moderation types' => array(
       'title' => t('Administer moderation types'),
@@ -112,7 +106,7 @@ function moderation_permission() {
     ),
   );
 
-//Generate permissions per moderation
+  //Generate permissions per moderation.
   foreach (moderation_get_types() as $type) {
     $type_name = check_plain($type->type);
     $permissions += array(
@@ -134,8 +128,8 @@ function moderation_permission() {
  *   The operation being performed. One of 'view', 'update', 'create', 'delete'
  *   or just 'edit' (being the same as 'create' or 'update').
  * @param $moderation
- *   Optionally a moderation or a moderation type to check access for. If nothing is
- *   given, access for all moderations is determined.
+ *   Optionally a moderation or a moderation type to check access for.
+ *   If nothing is given, access for all moderations is determined.
  * @param $account
  *   The user to check for. Leave it to NULL to check for the global user.
  * @return boolean
@@ -167,11 +161,10 @@ function moderation_type_access($op, $type = NULL, $account = NULL) {
  * @param $type_name
  *   If set, the type with the given name is returned.
  * @return ModerationType[]
- *   Depending whether $type isset, an array of moderation types or a single one.
+ *   Depending whether $type isset, an array of moderation types or a single
+ *   one.
  */
 function moderation_get_types($type_name = NULL) {
-// entity_load will get the Entity controller for our moderation entity and call the load
-// function of that object - we are loading entities by name here.
   $types = entity_load_multiple_by_name('moderation_type', isset($type_name) ? array($type_name) : FALSE);
   return isset($type_name) ? reset($types) : $types;
 }
@@ -274,55 +267,12 @@ function moderation_type_delete(ModerationType $type) {
 }
 
 /**
- * URI callback for moderations
- */
-function moderation_uri(Moderation $moderation) {
-  return array(
-    'path' => 'moderation/' . $moderation->moderation_id,
-  );
-}
-
-/**
- * Menu title callback for showing individual entities
- */
-function moderation_page_title(Moderation $moderation) {
-  return $moderation->name;
-}
-
-/**
- * Sets up content to show an individual moderation
- * @todo - get rid of drupal_set_title();
- */
-function moderation_page_view($moderation, $view_mode = 'full') {
-  $controller = entity_get_controller('moderation');
-  $content = $controller->view(array($moderation->moderation_id => $moderation));
-  drupal_set_title($moderation->name);
-  return $content;
-}
-
-/**
  * Implements hook_views_api().
  */
 function moderation_views_api() {
   return array(
     'api' => 3,
     'path' => drupal_get_path('module', 'moderation') . '/views',
-  );
-}
-
-/**
- * Implement hook_theme().
- */
-function moderation_theme() {
-  return array(
-    'moderation_add_list' => array(
-      'variables' => array('content' => array()),
-      'file' => 'moderation.admin.inc',
-    ),
-    'moderation' => array(
-      'render element' => 'elements',
-      'template' => 'moderation',
-    ),
   );
 }
 
@@ -334,6 +284,14 @@ function moderation_menu() {
   $items['moderation_ajax_actions_callback/%/%/%'] = array(
     'page callback' => 'moderation_ajax_actions_callback',
     'page arguments' => array(1, 2, 3, 4),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['moderation_entity_view/%/%'] = array(
+    'page callback' => 'moderation_entity_view',
+    'page arguments' => array(1, 2, 3),
     'access callback' => 'user_access',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
@@ -350,8 +308,19 @@ function moderation_ajax_actions_callback($type = 'ajax', $callback, $entity_typ
 
     $entity = call_user_func($entity_type . '_load', $entity_id);
 //    dsm($entity);
-    rules_invoke_event('moderation_on_moderate', $entity);
-//    rules_invoke_event_by_args('moderation_on_moderate', array('entity' => $entity));
+//    rules_invoke_event('moderation_on_moderate', $entity);
+    rules_invoke_event('moderation_on_moderate', entity_metadata_wrapper($entity_type, $entity));
+
+
+//    $rule = rule();
+//    $rule->action('entity_create', array(
+//      'type' => 'node',
+//      'param_type' => 'article',
+//      'param_author:select' => 'site:current-user',
+//      'param_title' => 'FOO',
+//      'entity_created:var' => 'node',
+//    ));
+//    $rule->execute();
     // Actions callback
 //    call_user_func($callback, $entites[$entity_id]);
 //    entity_save($entity_type, $entites[$entity_id]);
@@ -462,6 +431,35 @@ function node_moderation_action_info() {
   return $node_actions;
 }
 
+function moderation_entity_view($type = 'ajax', $entity_type, $entity_id) {
+  $output = '';
+  if ($type == 'ajax') {
+    $output .= '<div class="moderation_title_wrapper">';
+    $entity = call_user_func($entity_type . '_load', $entity_id);
+    $entities = array($entity);
+
+    $entity_view = entity_view($entity_type, $entities, $view_mode = 'teaser', $langcode = NULL, $page = NULL);
+    $output .= render($entity_view);
+
+    $entity_view = entity_view($entity_type, $entities, $view_mode = 'full', $langcode = NULL, $page = NULL);
+    $output .= render($entity_view);
+
+    $output .= '</div>';
+    dsm(entity_get_info());
+    // TODO: toggle switch
+    $commands = array();
+    // See ajax_example_advanced.inc for more details on the available commands
+    // and how to use them.
+    $commands[] = ajax_command_remove('.moderation_title_wrapper');
+    $commands[] = ajax_command_append('#title_' . $entity_id, $output);
+    $page = array(
+      '#type' => 'ajax',
+      '#commands' => $commands,
+    );
+    ajax_deliver($page);
+  }
+}
+
 /**
  * The class used for moderation entities
  */
@@ -473,10 +471,6 @@ class Moderation extends Entity {
 
   protected function defaultLabel() {
     return $this->name;
-  }
-
-  protected function defaultUri() {
-    return array('path' => 'moderation/' . $this->moderation_id);
   }
 
 }
@@ -516,7 +510,7 @@ class ModerationController extends EntityAPIController {
    *   A moderation object with all default fields initialized.
    */
   public function create(array $values = array()) {
-// Add values that are specific to our Moderation
+    // Add values that are specific to our Moderation
     $values += array(
       'moderation_id' => '',
       'is_new' => TRUE,
@@ -565,7 +559,7 @@ class ModerationTypeController extends EntityAPIControllerExportable {
    *   A moderation type object with all default fields initialized.
    */
   public function create(array $values = array()) {
-// Add values that are specific to our Moderation
+    // Add values that are specific to our Moderation
     $values += array(
       'id' => '',
       'is_new' => TRUE,

@@ -16,6 +16,7 @@ function moderation_views_data_alter(&$data) {
       'handler' => 'moderation_handler_actions_field',
     ),
   );
+  $data['node']['title']['field']['handler'] = 'moderation_handler_field_node_title';
 
   $entity_infos = entity_get_info();
   foreach ($entity_infos as $entity_type => $info) {
