@@ -12,8 +12,8 @@ function moderation_moderation_action_info() {
     'label data' => array(
       'data' => 'moderate',
       'labels' => array(
-        0 => 'moderate',
-        1 => 'unmoderate',
+        0 => t('moderate'),
+        1 => t('unmoderate'),
       ),
     ),
   );
@@ -33,13 +33,13 @@ function moderation_moderate_action_label($action, $entity_type, $entity_id = nu
             ->execute()
             ->fetchAssoc();
     if (isset($result['moderation_id'])) {
-      return 'unmoderate';
+      return t('unmoderate');
     }
     else {
-      return 'moderate';
+      return t('moderate');
     }
   }
   else {
-    return 'moderate | unmoderate';
+    return t('moderate') . ' | ' . t('unmoderate');
   }
 }

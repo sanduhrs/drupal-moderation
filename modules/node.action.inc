@@ -12,8 +12,8 @@ function node_moderation_action_info() {
       'label data' => array(
         'data' => 'status',
         'labels' => array(
-          0 => 'publish',
-          1 => 'unpublish',
+          0 => t('publish'),
+          1 => t('unpublish'),
         ),
       ),
       'action' => array(
@@ -45,8 +45,8 @@ function node_moderation_action_info() {
       'label data' => array(
         'data' => 'promote',
         'labels' => array(
-          0 => 'promote to frontpage',
-          1 => 'unpromote from frontpage',
+          0 => t('promote to frontpage'),
+          1 => t('unpromote from frontpage'),
         ),
       ),
       'action' => array(
@@ -78,8 +78,8 @@ function node_moderation_action_info() {
       'label data' => array(
         'data' => 'sticky',
         'labels' => array(
-          0 => 'make sticky',
-          1 => 'undo sticky',
+          0 => t('make sticky'),
+          1 => t('undo sticky'),
         ),
       ),
       'action' => array(
