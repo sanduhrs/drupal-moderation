@@ -1,0 +1,5 @@
+name = Moderation log
+description = Adds logging functionallity to moderation.
+core = 7.x
+
+dependencies[] = moderation
