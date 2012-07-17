@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function moderation_log_schema() {
+  $schema = array();
+
+  $schema['moderation_log'] = array(
+    'description' => 'The base table for moderation logs.',
+    'fields' => array(
+      'moderation_log_id' => array(
+        'description' => 'Primary Key: Identifier for a moderation_log.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'language' => array(
+        'description' => 'The language of the moderation.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity - a unique identifier.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'bundle' => array(
+        'description' => 'The bundle of this moderation.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity_type of this moderation.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'event' => array(
+        'description' => 'The action proceeded.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'size' => 'tiny',
+        'description' => 'The user id.',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the moderation was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'data' => array(
+        'type' => 'blob',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of the moderated data.',
+      ),
+    ),
+    'primary key' => array('moderation_log_id'),
+  );
+
+  return $schema;
+}

@@ -323,6 +323,8 @@ function moderation_menu() {
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
   // TODO: we should check whether the entity_type exists or not.
   if ($type == 'ajax') {
+    // Give other modules the opertunity to work with this action callback.
+    module_invoke_all('preaction', $event, $entity_type, $entity_id);
     // Load the entity by type and id.
     $entity = call_user_func($entity_type . '_load', $entity_id);
     // Execute the rule. The rule expects entity_metadata_warpper to work.
