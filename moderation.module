@@ -472,7 +472,7 @@ function moderation_parent_menu_callback() {
     drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
   }
   else {
-    return t('Theire have no moderation entities been created yet. You can create a new moderation entities <a href="@base_pathadmin/structure/moderation_types">here</a>.', array('@base_path' => base_path()));
+    return t('There have no moderation entities been created yet. You can create a new moderation entities <a href="@base_pathadmin/structure/moderation_types">here</a>.', array('@base_path' => base_path()));
   }
 }
 
