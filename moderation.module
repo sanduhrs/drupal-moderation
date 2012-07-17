@@ -306,7 +306,7 @@ function moderation_menu() {
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
   if ($type == 'ajax') {
     // Trigger the rule.
-    $entity = entity_load($entity_type, $entity_id);
+    $entity = call_user_func($entity_type.'_load', $entity_id);
     rules_invoke_event($event, entity_metadata_wrapper($entity_type, $entity));
 
     // Toggle the lable if required.
@@ -462,6 +462,39 @@ function node_moderation_action_info() {
           ),
           'do' => array(
             'status',
+            1,
+          ),
+        ),
+      ),
+    ),
+    'node_promote_action' => array(
+      'type' => 'toggle',
+      'event' => 'moderation_promote',
+      'label data' => array(
+        'data' => 'promote',
+        'labels' => array(
+          0 => 'promote to frontpage',
+          1 => 'unpromote from frontpage',
+        ),
+      ),
+      'action' => array(
+        'if' => array(
+          'data' => array(
+            'promote',
+            1,
+          ),
+          'do' => array(
+            'promote',
+            0,
+          ),
+        ),
+        'else if' => array(
+          'data' => array(
+            'promote',
+            0,
+          ),
+          'do' => array(
+            'promote',
             1,
           ),
         ),
