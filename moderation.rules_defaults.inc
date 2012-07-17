@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Implements hook_default_rules_configuration().
+ * Implementation of hook_default_rules_configuration().
  * TODO: make this without the import.
  */
 function moderation_default_rules_configuration() {
