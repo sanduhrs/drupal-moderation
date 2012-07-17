@@ -1,5 +1,9 @@
 <?php
 
+// Currently we have some problems with these entities, because they have not be
+// fully converted into "real" entities.
+define('NOT_YET_SUPPORTED_ENTITIES', serialize(array('user', 'taxonomy_term', 'taxonomy_vocabulary', 'file')));
+
 /**
  * Implement hook_entity_info().
  *

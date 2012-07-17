@@ -45,14 +45,19 @@ function moderation_views_data_alter(&$data) {
           ),
         ),
       );
+    }
 
-      // TODO: Bundle filter
-//      $data[$info['base table']]['bundle'] = array(
-//        'title' => t('Bundle Filter'),
-//        'filter' => array(
-//          'handler' => 'views_handler_filter_node_type',
-//        ),
-//      );
+    // Expose generally usable entity-related fields.
+    foreach (entity_get_info() as $entity_type => $info) {
+      if (isset($info['entity keys']['bundle'])) {
+        $data['views_entity_' . $entity_type][$info['entity keys']['bundle']] = array(
+          'title' => t('Bundle'),
+          'help' => t('The bundle type (for example, "basic page", "node comment", "story", etc).'),
+          'filter' => array(
+            'handler' => 'moderation_handler_filter_entity_bundle',
+          ),
+        );
+      }
     }
   }
 }

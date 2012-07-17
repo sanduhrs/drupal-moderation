@@ -143,8 +143,6 @@ function moderation_views_default_views() {
     $handler->display->display_options['defaults']['filter_groups'] = FALSE;
     $handler->display->display_options['defaults']['filters'] = FALSE;
 
-    /* Filter criterion: Bundle: Type */
-
     /* Filter criterion: Moderation: Entity_id */
     // Removes all entries wich have a moderation relation.
     $handler->display->display_options['defaults']['filters'] = FALSE;
@@ -153,14 +151,33 @@ function moderation_views_default_views() {
     $handler->display->display_options['filters']['entity_id']['field'] = 'entity_id';
     $handler->display->display_options['filters']['entity_id']['operator'] = 'empty';
 
-    /* Filter criterion: Content: Type */
-    $handler->display->display_options['filters']['type']['id'] = $entity_infos[$info->data['entity_type']]['entity keys']['bundle'];
-    $handler->display->display_options['filters']['type']['table'] = $entity_infos[$info->data['entity_type']]['base table'];
-    $handler->display->display_options['filters']['type']['field'] = $entity_infos[$info->data['entity_type']]['entity keys']['bundle'];
-    $handler->display->display_options['filters']['type']['relationship'] = $info->data['entity_type'];
-    $handler->display->display_options['filters']['type']['value'] = array(
-      $info->data['container']['bundle'] => $info->data['container']['bundle'],
-    );
+    if (!in_array($info->data['entity_type'], unserialize(NOT_YET_SUPPORTED_ENTITIES)) && $info->data['entity_type'] != 'comment') {
+      /* Filter criterion: Bundle: Type */
+      $handler->display->display_options['filters']['type']['id'] = $entity_infos[$info->data['entity_type']]['entity keys']['bundle'];
+      $handler->display->display_options['filters']['type']['table'] = 'views_entity_' . $entity_infos[$info->data['entity_type']]['base table'];
+      $handler->display->display_options['filters']['type']['field'] = $entity_infos[$info->data['entity_type']]['entity keys']['bundle'];
+      $handler->display->display_options['filters']['type']['relationship'] = $info->data['entity_type'];
+      $handler->display->display_options['filters']['type']['value'] = array(
+        $info->data['container']['bundle'] => $info->data['container']['bundle'],
+      );
+    }
+    // Because we like moderating comments per bundle, we use this workaround.
+    else if ($info->data['entity_type'] == 'comment') {
+      /* Relationship: Comment: Content */
+      $handler->display->display_options['relationships']['nid']['id'] = 'nid';
+      $handler->display->display_options['relationships']['nid']['table'] = $entity_infos[$info->data['entity_type']]['base table'];
+      $handler->display->display_options['relationships']['nid']['field'] = 'nid';
+      $handler->display->display_options['relationships']['nid']['relationship'] = $info->data['entity_type'];
+      $handler->display->display_options['defaults']['fields'] = FALSE;
+      /* Filter criterion: Content: Type */
+      $handler->display->display_options['filters']['type']['id'] = 'type';
+      $handler->display->display_options['filters']['type']['table'] = 'node';
+      $handler->display->display_options['filters']['type']['field'] = 'type';
+      $handler->display->display_options['filters']['type']['relationship'] = 'nid';
+      $handler->display->display_options['filters']['type']['value'] = array(
+        preg_replace('/^comment_node_/', '', $info->data['container']['bundle']) => preg_replace('/^comment_node_/', '', $info->data['container']['bundle']),
+      );
+    }
 
     /* Menu tab */
     $handler->display->display_options['menu']['type'] = 'tab';

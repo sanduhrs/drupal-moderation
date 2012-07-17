@@ -100,6 +100,12 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#attributes' => array('id' => 'moderation-type-container'),
   );
 
+  $disabled = FALSE;
+  // Disable the bundle selection for not supported entities to not let the user
+  // expect to be abel to use them in their queue.
+  if(in_array($active_entity_type, unserialize(NOT_YET_SUPPORTED_ENTITIES))) {
+    $disabled = TRUE;
+  }
   $form['data']['container']['bundle'] = array(
     '#title' => t('Bundle'),
     '#type' => 'select',
@@ -107,6 +113,7 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#description' => t('The bundle type to be moderated.'),
     '#required' => TRUE,
     '#options' => $bundles[$active_entity_type],
+    '#disabled' => $disabled,
   );
   $form['data']['container']['actions'] = array(
     '#title' => t('Actions'),
