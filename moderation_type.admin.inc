@@ -76,7 +76,7 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
   }
 
   $form['data']['entity_type'] = array(
-    '#title' => 'Entity type',
+    '#title' => t('Entity type'),
     '#type' => 'select',
     '#description' => t('The entity type to be moderated.'),
     '#required' => TRUE,
@@ -101,7 +101,7 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
   );
 
   $form['data']['container']['bundle'] = array(
-    '#title' => 'Bundle',
+    '#title' => t('Bundle'),
     '#type' => 'select',
     '#default_value' => isset($moderation_type->data['container']['bundle']) ? $moderation_type->data['container']['bundle'] : reset(array_keys($bundles[$active_entity_type])),
     '#description' => t('The bundle type to be moderated.'),
@@ -109,7 +109,7 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#options' => $bundles[$active_entity_type],
   );
   $form['data']['container']['actions'] = array(
-    '#title' => 'Actions',
+    '#title' => t('Actions'),
     '#type' => 'checkboxes',
     '#default_value' => isset($moderation_type->data['container']['actions']) ? $moderation_type->data['container']['actions'] : array(),
     '#description' => t('The bundle type to be moderated.'),

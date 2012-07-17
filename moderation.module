@@ -304,6 +304,7 @@ function moderation_menu() {
  * Ajax callback for moderation actions.
  */
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
+  // TODO: we should check whether the entity_type exists or not.
   if ($type == 'ajax') {
     // Trigger the rule.
     $entity = call_user_func($entity_type.'_load', $entity_id);
@@ -581,7 +582,7 @@ function moderation_parent_menu_callback() {
     drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
   }
   else {
-    return t('Theire have no moderation entities been created yet. You can create a new moderation entities <a href="' . base_path() . 'admin/structure/moderation_types">here</a>.');
+    return t('Theire have no moderation entities been created yet. You can create a new moderation entities <a href="@base_pathadmin/structure/moderation_types">here</a>.', array('@base_path' => base_path()));
   }
 }
 
