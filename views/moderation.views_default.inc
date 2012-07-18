@@ -55,7 +55,7 @@ function moderation_views_default_views() {
   $handler->display->display_options['empty']['area']['field'] = 'area';
   $handler->display->display_options['empty']['area']['label'] = 'Empty ';
   $handler->display->display_options['empty']['area']['empty'] = FALSE;
-  $handler->display->display_options['empty']['area']['content'] = 'No moderations have been created yet';
+  $handler->display->display_options['empty']['area']['content'] = 'No content have been created yet';
 
   /* Field: Moderation: Entity_id */
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
@@ -128,7 +128,7 @@ function moderation_views_default_views() {
     $handler->display->display_options['fields'][$id]['hide_alter_empty'] = 1;
     $handler->display->display_options['fields'][$id]['link_to_comment'] = 1;
     $handler->display->display_options['fields'][$id]['link_to_node'] = 0;
-    $handler->display->display_options['path'] = 'admin/content/moderations/' . $info->type;
+    $handler->display->display_options['path'] = 'admin/moderations/' . $info->type;
 
     /* Field: Node: Entity label */
     $handler->display->display_options['fields']['label']['id'] = 'label';

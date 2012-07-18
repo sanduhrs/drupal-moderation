@@ -282,12 +282,12 @@ function moderation_init() {
 function moderation_menu() {
   $items = array();
 
-  $items['admin/content/moderations'] = array(
+  $items['admin/moderations'] = array(
     'title' => 'Moderations',
     'description' => 'Add edit and update moderations.',
     'page callback' => 'moderation_parent_menu_callback',
-    'access arguments' => array('access administration pages'),
-    'type' => MENU_LOCAL_TASK,
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
     'weight' => 9,
   );
 
@@ -472,7 +472,7 @@ function moderation_entity_view($type = 'ajax', $entity_type, $entity_id) {
  */
 function moderation_parent_menu_callback() {
   if (moderation_get_types()) {
-    drupal_goto('admin/content/moderations/' . reset(moderation_get_types())->type);
+    drupal_goto('admin/moderations/' . reset(moderation_get_types())->type);
   }
   else {
     return t('There have no moderation entities been created yet. You can create a new moderation entities <a href="@base_pathadmin/structure/moderation_types">here</a>.', array('@base_path' => base_path()));

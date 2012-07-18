@@ -148,7 +148,7 @@ function moderation_type_form_submit(&$form, &$form_state) {
   $moderation_type = entity_ui_form_submit_build_entity($form, $form_state);
   $moderation_type->save();
   // Redirect directly to the moderation queue.
-  $form_state['redirect'] = 'admin/content/moderations/' . $moderation_type->type;
+  $form_state['redirect'] = 'admin/moderations/' . $moderation_type->type;
 }
 
 /**

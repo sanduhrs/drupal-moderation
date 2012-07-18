@@ -5,6 +5,8 @@ core = 7.x
 ;http://drupal.org/node/1435418
 dependencies[] = entity
 dependencies[] = views
+dependencies[] = rules
+dependencies[] = rules_conditional
 
 files[] = moderation.admin.inc
 files[] = moderation_type.admin.inc
