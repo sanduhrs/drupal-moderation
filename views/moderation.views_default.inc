@@ -170,6 +170,6 @@ function moderation_views_default_views() {
     $handler->display->display_options['menu']['context'] = 0;
   }
 
-  $views[] = $view;
+  $views[$view->name] = $view;
   return $views;
 }

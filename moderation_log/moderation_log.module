@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implementation of hook_log_preaction().
+ *
+ * @see moderation_ajax_actions_callback().
+ * We log the entity before triggering the rule to keep track of the changes.
+ */
+function moderation_log_preaction($event, $entity_type, $entity_id) {
+  global $user;
+  $entity = call_user_func($entity_type . '_load', $entity_id);
+  $entity_info = entity_get_info();
+  $bundle = $entity->{$entity_info[$entity_type]['entity keys']['bundle']};
+  $record = array(
+    'entity_id' => $entity_id,
+    'entity_type' => $entity_type,
+    'bundle' => $bundle,
+    'event' => $event,
+    'language' => $entity->language,
+    'created' => time(),
+    'uid' => $user->uid,
+    'data' => serialize($entity),
+  );
+  drupal_write_record('moderation_log', $record);
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function moderation_log_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'moderation_log') . '/views',
+  );
+}

@@ -288,6 +288,7 @@ function moderation_menu() {
     'page callback' => 'moderation_parent_menu_callback',
     'access arguments' => array('access administration pages'),
     'type' => MENU_LOCAL_TASK,
+    'weight' => 9,
   );
 
   $items['moderation_ajax_actions_callback/%/%/%'] = array(
