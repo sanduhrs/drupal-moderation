@@ -34,7 +34,6 @@ function moderation_views_data_alter(&$data) {
           'base' => $info['base table'],
           'base field' => $info['entity keys']['id'],
           'relationship field' => 'entity_id',
-          // @todo: check, this might be "extras".
           'extra' => array(
             array(
               'table' => 'moderation',

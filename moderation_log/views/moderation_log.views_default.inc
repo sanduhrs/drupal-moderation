@@ -5,7 +5,7 @@
  */
 function moderation_log_views_default_views() {
   $views = array();
-  
+
   $view = new view();
   $view->name = 'moderation_logs';
   $view->description = '';
@@ -37,6 +37,9 @@ function moderation_log_views_default_views() {
       'empty_column' => 0,
     ),
   );
+  /* Permission settings */
+  $handler->display->display_options['access']['type'] = 'perm';
+  $handler->display->display_options['access']['perm'] = 'moderation logs';
   /* No results behavior: Global: Text area */
   $handler->display->display_options['empty']['area']['id'] = 'area';
   $handler->display->display_options['empty']['area']['table'] = 'views';

@@ -19,8 +19,6 @@ function moderation_views_default_views() {
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Moderations';
-  $handler->display->display_options['access']['type'] = 'perm';
-  $handler->display->display_options['access']['perm'] = 'create any moderation type';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['query']['options']['query_comment'] = FALSE;
@@ -98,6 +96,10 @@ function moderation_views_default_views() {
     $handler->display->display_options['relationships'][$info->data['entity_type']]['table'] = 'moderation';
     $handler->display->display_options['relationships'][$info->data['entity_type']]['field'] = $info->data['entity_type'];
     $handler->display->display_options['relationships'][$info->data['entity_type']]['required'] = 0;
+    /* Permission settings */
+    $handler->display->display_options['defaults']['access'] = FALSE;
+    $handler->display->display_options['access']['type'] = 'perm';
+    $handler->display->display_options['access']['perm'] = 'use ' . $info->type;
 
     /* Field: Entity: ID */
     $id = $entity_infos[$info->data['entity_type']]['entity keys']['id'];
