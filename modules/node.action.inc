@@ -7,7 +7,6 @@ function node_moderation_action_info() {
   $node_actions = array();
   $node_actions['node'] = array(
     'node_publish_action' => array(
-      'type' => 'toggle',
       'event' => 'moderation_publish',
       'label data' => array(
         'data' => 'status',
@@ -40,7 +39,6 @@ function node_moderation_action_info() {
       ),
     ),
     'node_promote_action' => array(
-      'type' => 'toggle',
       'event' => 'moderation_promote',
       'label data' => array(
         'data' => 'promote',
@@ -73,7 +71,6 @@ function node_moderation_action_info() {
       ),
     ),
     'node_make_sticky_action' => array(
-      'type' => 'toggle',
       'event' => 'moderation_sticky',
       'label data' => array(
         'data' => 'sticky',

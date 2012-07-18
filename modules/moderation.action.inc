@@ -6,7 +6,6 @@
 function moderation_moderation_action_info() {
   $moderation_actions = array();
   $moderation_actions['every_entity']['moderation_moderate_entity'] = array(
-    'type' => 'toggle',
     'event' => 'moderation_on_moderate',
     'label callback' => 'moderation_moderate_action_label',
     'label data' => array(

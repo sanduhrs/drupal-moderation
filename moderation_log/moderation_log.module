@@ -15,12 +15,12 @@ function moderation_log_permission() {
 }
 
 /**
- * Implementation of hook_log_preaction().
+ * Implementation of hook_moderation_preaction().
  *
  * @see moderation_ajax_actions_callback().
  * We log the entity before triggering the rule to keep track of the changes.
  */
-function moderation_log_preaction($event, $entity_type, $entity_id) {
+function moderation_log_moderation_preaction($event, $entity_type, $entity_id) {
   global $user;
   $entity = call_user_func($entity_type . '_load', $entity_id);
   $entity_info = entity_get_info();
