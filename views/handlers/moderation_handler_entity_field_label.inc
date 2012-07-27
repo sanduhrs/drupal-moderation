@@ -24,18 +24,23 @@ class moderation_handler_entity_field_label extends entity_views_handler_field_l
 
   // TODO: multilingual support.
   function render($values) {
-    if (!empty($this->options['ajax_preview'])) {
-      drupal_add_library('system', 'drupal.ajax');
-
-      if (($entity = $this->get_value($values)) && entity_access('view', $this->entity_type, $entity)) {
-        $entity_info = entity_get_info($this->entity_type);
-        $label = entity_label($this->entity_type, $entity);
-
-        $data = '<div>' . l($label, 'moderation_entity_view/nojs/' . $this->entity_type . '/' . $entity->{$entity_info['entity keys']['id']}, array('attributes' => array('class' => array('use-ajax')))) . '</div>';
-        $data .= '<div id="title_' . $entity->{$entity_info['entity keys']['id']} . '"></div>';
-
-        return $data;
+    $attributes = array();
+    if (($entity = $this->get_value($values)) && entity_access('view', $this->entity_type, $entity)) {
+      $entity_info = entity_get_info($this->entity_type);
+      $label = entity_label($this->entity_type, $entity);
+      $entity_uri = entity_uri($this->entity_type, $entity);
+      $path = $entity_uri['path'];
+      
+      if (!empty($this->options['ajax_preview'])) {
+        drupal_add_library('system', 'drupal.ajax');
+        $attributes = array('attributes' => array('class' => array('use-ajax')));
+        $path = 'moderation_entity_view/nojs/' . $this->entity_type . '/' . $entity->{$entity_info['entity keys']['id']};
       }
+
+      $data = '<div>' . l($label, $path, $attributes) . '</div>';
+      $data .= '<div id="title_' . $entity->{$entity_info['entity keys']['id']} . '"></div>';
+
+      return $data;
     }
   }
 

@@ -35,7 +35,6 @@ function moderation_entity_info() {
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
     'creation callback' => 'moderation_create',
-    'access callback' => 'moderation_access',
     'module' => 'moderation',
   );
   // The entity that holds information about the entity types.
@@ -109,33 +108,6 @@ function moderation_permission() {
     );
   }
   return $permissions;
-}
-
-/**
- * Determines whether the given user has access to a moderation.
- *
- * @param $op
- *   The operation being performed. One of 'view', 'update', 'create', 'delete'
- *   or just 'edit' (being the same as 'create' or 'update').
- * @param $moderation
- *   Optionally a moderation or a moderation type to check access for.
- *   If nothing is given, access for all moderations is determined.
- * @param $account
- *   The user to check for. Leave it to NULL to check for the global user.
- * @return boolean
- *   Whether access is allowed or not.
- */
-function moderation_access($op, $moderation = NULL, $account = NULL) {
-  if (user_access('administer moderations', $account)) {
-    return TRUE;
-  }
-  if (isset($moderation) && $type_name = $moderation->type) {
-    $op = ($op == 'view') ? 'view' : 'edit';
-    if (user_access("$op any $type_name moderation", $account)) {
-      return TRUE;
-    }
-  }
-  return FALSE;
 }
 
 /**
@@ -323,7 +295,7 @@ function moderation_menu() {
  */
 function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, $entity_id) {
   // TODO: we should check whether the entity_type exists or not.
-  if ($type == 'ajax') {
+  if ($type == 'ajax' && drupal_valid_token($_GET['token'], 'moderation_request')) {
     // Give other modules the opertunity to work with this action callback.
     module_invoke_all('moderation_preaction', $event, $entity_type, $entity_id);
     // Load the entity by type and id.
@@ -351,6 +323,9 @@ function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, 
       '#commands' => $commands,
     );
     ajax_deliver($page);
+  }
+  else {
+    return drupal_access_denied();
   }
 }
 
