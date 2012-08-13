@@ -111,35 +111,11 @@ function moderation_schema() {
   return $schema;
 }
 
-//$data = array(
-//  'entity_type' => 'node',
-//  'container' => array(
-//    'bundle' => 'article',
-//    'actions' => array(
-//      'moderation_moderate_entity' => 'moderation_moderate_entity',
-//      'node_publish_action' => 0,
-//      'node_promote_action' => 0,
-//      'node_make_sticky_action' => 0,
-//    ),
-//  ),
-//);
-//$values = array(
-//  'type' => 'node_article',
-//  'label' => 'node article',
-//  'data' => $data,
-//);
-//$mod = new ModerationType($values);
-//
-//dvm(unserialize('a:2:{s:11:"entity_type";s:4:"node";s:9:"container";a:2:{s:6:"bundle";s:7:"article";s:7:"actions";a:4:{s:26:"moderation_moderate_entity";s:26:"moderation_moderate_entity";s:19:"node_publish_action";i:0;s:19:"node_promote_action";i:0;s:23:"node_make_sticky_action";i:0;}}}'));
-//dsm($mod);
-//$mod->save();
-
 /**
  * Upgrade path to take moderations from D6 to D7.
  *
- * TODO: add moderation entity for each type (node => node_type) (comment => comment_type)
  */
-function moderation_update_7101() {
+function moderation_update_7107() {
 
   // Drop keys.
   db_drop_unique_key('moderation', 'obj_id');
@@ -160,7 +136,6 @@ function moderation_update_7101() {
   ));
 
   // Add moderation type column.
-  // TODO: fill?
   db_add_field('moderation', 'type', array(
     'description' => 'The {moderation_type}.type of this moderation.',
     'type' => 'varchar',
@@ -179,7 +154,6 @@ function moderation_update_7101() {
   ));
 
   // Rename obj_id column to entity_id.
-  // TODO: deltete doubles?
   db_change_field('moderation', 'obj_id', 'entity_id', array(
     'description' => 'The id of the entity - a unique identifier.',
     'type' => 'int',
