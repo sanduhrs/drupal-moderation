@@ -111,13 +111,6 @@ function moderation_schema() {
   return $schema;
 }
 
-/**
- * Upgrade path to take moderations from D6 to D7.
- */
-function moderation_update_7101() {
-
-}
-
 //$data = array(
 //  'entity_type' => 'node',
 //  'container' => array(
@@ -146,7 +139,7 @@ function moderation_update_7101() {
  *
  * TODO: add moderation entity for each type (node => node_type) (comment => comment_type)
  */
-function moderation_update_7105() {
+function moderation_update_7101() {
 
   // Drop keys.
   db_drop_unique_key('moderation', 'obj_id');
