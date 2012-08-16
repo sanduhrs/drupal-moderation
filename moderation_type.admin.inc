@@ -114,7 +114,47 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
     '#required' => TRUE,
     '#options' => $bundles[$active_entity_type],
     '#disabled' => $disabled,
+    '#ajax' => array(
+      'callback' => 'moderation_comment_queue_container_callback',
+      'wrapper' => 'moderation-comment_queue-container',
+      'method' => 'replace',
+    ),
   );
+
+  $form['data']['container']['comment_queue_container'] = array(
+    '#type' => 'container',
+    '#attributes' => array('id' => 'moderation-comment_queue-container'),
+  );
+
+  // If bundle has comments enabled -> Show select field for comment Queue.
+  // The selected comment queue will be attached to the preloaded node with an contextual filter on the node.
+  if (isset($form_state['values']['data']['container']['bundle']) && in_array($form_state['values']['data']['container']['bundle'], array_flip($bundles[$active_entity_type]))) {
+    $active_bundle = $form_state['values']['data']['container']['bundle'];
+  }
+  else {
+    $active_bundle = isset($moderation_type->data['container']['bundle']) ? $moderation_type->data['container']['bundle'] : reset(array_keys($bundles[$active_entity_type]));
+  }
+
+  // Catch all comment queues available.
+  $comment_queues = array();
+  foreach(moderation_get_types() as $moderation_get_type => $moderation_get_type_data) {
+    if($moderation_get_type_data->data['entity_type'] == 'comment') {
+      $comment_type = explode('_', $moderation_get_type_data->data['container']['bundle']);
+      $comment_queues[end($comment_type)][$moderation_get_type] = $moderation_get_type;
+    }
+  }
+  if(isset($comment_queues[$active_bundle])) {
+    $comment_queues[$active_bundle][] = t('disabled');
+    $form['data']['container']['comment_queue_container']['comment_queue'] = array(
+      '#title' => t('Comment queue'),
+      '#type' => 'select',
+      '#default_value' => isset($moderation_type->data['container']['comment_queue_container']['comment_queue']) ? $moderation_type->data['container']['comment_queue_container']['comment_queue'] : reset($comment_queues[$active_bundle]),
+      '#description' => t('This entity is using comments. Choose a comment queue.'),
+      '#required' => FALSE,
+      '#options' => $comment_queues[$active_bundle],
+    );
+  }
+
   $form['data']['container']['actions'] = array(
     '#title' => t('Actions'),
     '#type' => 'checkboxes',
@@ -139,6 +179,13 @@ function moderation_type_form($form, &$form_state, $moderation_type, $op = 'edit
  */
 function moderation_type_container_callback($form, &$form_state) {
   return $form['data']['container'];
+}
+
+/**
+ * Ajax callback to return the comment_queue container.
+ */
+function moderation_comment_queue_container_callback($form, &$form_state) {
+  return $form['data']['container']['comment_queue_container'];
 }
 
 /**

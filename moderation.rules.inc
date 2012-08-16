@@ -83,6 +83,7 @@ function moderations_action_moderate($entity) {
     $moderation = new Moderation();
     $moderation->entity_id = $entity_id;
     $moderation->entity_type = $entity_type;
+    $moderation->created = time();
     $moderation->type = 'rule';
 
     $moderation->save();

@@ -54,7 +54,6 @@ function moderation_views_default_views() {
   $handler->display->display_options['empty']['area']['table'] = 'views';
   $handler->display->display_options['empty']['area']['field'] = 'area';
   $handler->display->display_options['empty']['area']['label'] = 'Empty ';
-  $handler->display->display_options['empty']['area']['empty'] = FALSE;
   $handler->display->display_options['empty']['area']['content'] = 'No content have been created yet';
 
   /* Field: Moderation: Entity_id */
@@ -162,6 +161,22 @@ function moderation_views_default_views() {
       $handler->display->display_options['filters']['type']['value'] = array(
         $info->data['container']['bundle'] => $info->data['container']['bundle'],
       );
+    }
+
+    // If the moderation is a comment queue, add a contextual filter for the threaded view.
+    if($info->data['entity_type'] === 'comment') {
+      /* Contextual filter: Comment: Nid */
+      $handler->display->display_options['defaults']['arguments'] = FALSE;
+      $handler->display->display_options['arguments']['nid']['id'] = 'nid';
+      $handler->display->display_options['arguments']['nid']['table'] = 'comment';
+      $handler->display->display_options['arguments']['nid']['field'] = 'nid';
+      $handler->display->display_options['arguments']['nid']['relationship'] = 'comment';
+      $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+      $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
+      $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+      $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
+      // Remove the empty area text for these.
+      $handler->display->display_options['defaults']['empty'] = FALSE;
     }
 
     /* Menu tab */

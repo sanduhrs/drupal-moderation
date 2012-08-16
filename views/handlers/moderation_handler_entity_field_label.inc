@@ -34,7 +34,9 @@ class moderation_handler_entity_field_label extends entity_views_handler_field_l
       if (!empty($this->options['ajax_preview'])) {
         drupal_add_library('system', 'drupal.ajax');
         $attributes = array('attributes' => array('class' => array('use-ajax')));
-        $path = 'moderation_entity_view/nojs/' . $this->entity_type . '/' . $entity->{$entity_info['entity keys']['id']};
+        // Pretty ugly.
+        $moderation_type = arg(2);
+        $path = 'moderation_entity_view/nojs/' . $this->entity_type . '/' . $entity->{$entity_info['entity keys']['id']} . '/' . $moderation_type;
       }
 
       $data = '<div>' . l($label, $path, $attributes) . '</div>';
