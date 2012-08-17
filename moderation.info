@@ -8,6 +8,8 @@ dependencies[] = views
 dependencies[] = rules
 dependencies[] = rules_conditional
 
+scripts[] = moderation.js
+
 files[] = moderation.admin.inc
 files[] = moderation_type.admin.inc
 files[] = views/moderation.views.inc

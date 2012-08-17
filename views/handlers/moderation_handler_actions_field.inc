@@ -60,7 +60,7 @@ class moderation_handler_actions_field extends views_handler_field {
     foreach (moderation_action_list($entity_type) as $callback => $action) {
       if (isset($action['event']) && (isset($moderation->data['container']['actions'][$callback]) && !empty($moderation->data['container']['actions'][$callback]))) {
         $label = isset($action['label callback']) ? call_user_func($action['label callback'], $action, $entity_type, $entity_id) : moderation_action_label($action, $entity_type, $entity_id);
-        $output .= '<span id="moderation_action_' . $entity_id . '_' . $action['event'] . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $action['event'] . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')), 'query' => array('token' => drupal_get_token('moderation_request')))) . '</span>';
+        $output .= '<span id="moderation_action_' . $entity_id . '_' . $action['event'] . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $action['event'] . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax', 'action')), 'query' => array('token' => drupal_get_token('moderation_request')))) . '</span>';
         $output .= '<span> | </span>';
       }
     }

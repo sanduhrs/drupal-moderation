@@ -315,7 +315,7 @@ function moderation_ajax_actions_callback($type = 'ajax', $event, $entity_type, 
 
     $commands = array();
     // Prepare the new link, wich will replace the triggered one.
-    $link = '<span id="moderation_action_' . $entity_id . '_' . $event . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $event . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax')), 'query' => array('token' => drupal_get_token('moderation_request')))) . '</span>';
+    $link = '<span id="moderation_action_' . $entity_id . '_' . $event . '">' . l($label, 'moderation_ajax_actions_callback/nojs/' . $event . '/' . $entity_type . '/' . $entity_id, array('attributes' => array('class' => array('use-ajax', 'action')), 'query' => array('token' => drupal_get_token('moderation_request')))) . '</span>';
     $commands[] = ajax_command_replace('#moderation_action_' . $entity_id . '_' . $event, $link);
 
     // TODO: Close the moderation_view when using the moderaion_on_moderate event.
@@ -412,7 +412,7 @@ function moderation_action_label($action, $entity_type, $entity_id = null) {
  */
 function moderation_entity_view($type = 'ajax', $entity_type, $entity_id, $moderation_type) {
   if ($type == 'ajax') {
-    $output = '<div class="moderation_title_wrapper">';
+    $output = '<div id="title_' . $entity_id . '_content"><div class="moderation_title_wrapper">';
 
     // Load the entity to be previewed.
     $entity = call_user_func($entity_type . '_load', $entity_id);
@@ -439,13 +439,13 @@ function moderation_entity_view($type = 'ajax', $entity_type, $entity_id, $moder
       $output .= views_embed_view('moderations', 'page_' . $moderation_type_comment_queue_info->type, $entity_id);
     }
 
-    $output .= '</div>';
+    $output .= '</div></div>';
 
     $commands = array();
     // Append preview content.
     // TODO: Toggle entity when clicking on the title.
     // $commands[] = ajax_command_remove('.moderation_title_wrapper');
-    $commands[] = ajax_command_replace('#title_' . $entity_id, $output);
+    $commands[] = ajax_command_replace('#title_' . $entity_id . '_content', $output);
     $page = array(
       '#type' => 'ajax',
       '#commands' => $commands,

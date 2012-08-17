@@ -69,38 +69,38 @@ function moderation_schema() {
   $schema['moderation_type'] = array(
     'description' => 'Stores information about defined moderation types.',
     'fields' => array(
-'id' => array(
-'type' => 'serial',
- 'not null' => TRUE,
- 'description' => 'Primary Key: Unique moderation type identifier.',
-),
- 'type' => array(
-'description' => 'The machine-readable name of this moderation type.',
- 'type' => 'varchar',
- 'length' => 255,
- 'not null' => TRUE,
-),
- 'label' => array(
-'description' => 'The human-readable name of this moderation type.',
- 'type' => 'varchar',
- 'length' => 255,
- 'not null' => TRUE,
- 'default' => '',
-),
- 'weight' => array(
-'type' => 'int',
- 'not null' => TRUE,
- 'default' => 0,
- 'size' => 'tiny',
- 'description' => 'The weight of this moderation type in relation to others.',
-),
- 'data' => array(
-'type' => 'text',
- 'not null' => FALSE,
- 'size' => 'big',
- 'serialize' => TRUE,
- 'description' => 'A serialized array of additional data related to this moderation type.',
-),
+      'id' => array(
+      'type' => 'serial',
+       'not null' => TRUE,
+       'description' => 'Primary Key: Unique moderation type identifier.',
+      ),
+       'type' => array(
+      'description' => 'The machine-readable name of this moderation type.',
+       'type' => 'varchar',
+       'length' => 255,
+       'not null' => TRUE,
+      ),
+       'label' => array(
+      'description' => 'The human-readable name of this moderation type.',
+       'type' => 'varchar',
+       'length' => 255,
+       'not null' => TRUE,
+       'default' => '',
+      ),
+       'weight' => array(
+      'type' => 'int',
+       'not null' => TRUE,
+       'default' => 0,
+       'size' => 'tiny',
+       'description' => 'The weight of this moderation type in relation to others.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this moderation type.',
+      ),
     ) + entity_exportable_schema_fields(),
     'primary key' => array('id'),
     'unique keys' => array(
@@ -115,7 +115,7 @@ function moderation_schema() {
  * Upgrade path to take moderations from D6 to D7.
  *
  */
-function moderation_update_7107() {
+function moderation_update_7100() {
 
   // Drop keys.
   db_drop_unique_key('moderation', 'obj_id');
@@ -198,4 +198,66 @@ function moderation_update_7107() {
 
   // Drop moderation_comment_status table.
   db_drop_table('moderation_comment_status');
+
+  // Adding the moderation type table.
+  $schema['moderation_type'] = array(
+    'description' => 'Stores information about defined moderation types.',
+    'fields' => array(
+      'id' => array(
+      'type' => 'serial',
+       'not null' => TRUE,
+       'description' => 'Primary Key: Unique moderation type identifier.',
+      ),
+       'type' => array(
+      'description' => 'The machine-readable name of this moderation type.',
+       'type' => 'varchar',
+       'length' => 255,
+       'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this moderation type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this moderation type in relation to others.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this moderation type.',
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+  db_create_table('moderation_type', $schema['moderation_type']);
+}
+
+/**
+ * Add in the exportable entity db columns as required by the entity API.
+ */
+function moderation_update_7101() {
+  // Previously this was update 7200, so check whether we need to run it really.
+  // The update has been moved as 7200 needs to be the 6.x-7.x upgrade.
+  if (!db_field_exists('moderation_type', 'status')) {
+    db_add_field('moderation_type', 'status', array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => ENTITY_CUSTOM,
+      'size' => 'tiny',
+      'description' => 'The exportable status of the entity.',
+    )); 
+    // The module column did already exist before.
+  }
 }
