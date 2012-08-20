@@ -7,6 +7,8 @@ dependencies[] = entity
 dependencies[] = views
 dependencies[] = rules
 dependencies[] = rules_conditional
+;Currently is devel depended, this should be undone sometime.
+dependencies[] = devel
 
 scripts[] = moderation.js
 

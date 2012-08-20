@@ -116,7 +116,6 @@ function moderation_schema() {
  *
  */
 function moderation_update_7100() {
-
   // Drop keys.
   db_drop_unique_key('moderation', 'obj_id');
   db_drop_unique_key('moderation', 'obj_type');
@@ -235,6 +234,21 @@ function moderation_update_7100() {
         'serialize' => TRUE,
         'description' => 'A serialized array of additional data related to this moderation type.',
       ),
+      'status' => array(
+        'type' => 'int', 
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point. 
+        'default' => 0x01, 
+        'size' => 'tiny', 
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.', 
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
@@ -242,22 +256,4 @@ function moderation_update_7100() {
     ),
   );
   db_create_table('moderation_type', $schema['moderation_type']);
-}
-
-/**
- * Add in the exportable entity db columns as required by the entity API.
- */
-function moderation_update_7101() {
-  // Previously this was update 7200, so check whether we need to run it really.
-  // The update has been moved as 7200 needs to be the 6.x-7.x upgrade.
-  if (!db_field_exists('moderation_type', 'status')) {
-    db_add_field('moderation_type', 'status', array(
-      'type' => 'int',
-      'not null' => TRUE,
-      'default' => ENTITY_CUSTOM,
-      'size' => 'tiny',
-      'description' => 'The exportable status of the entity.',
-    )); 
-    // The module column did already exist before.
-  }
 }
