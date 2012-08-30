@@ -1,0 +1,17 @@
+Moderation UPGRADE.txt
+http://drupal.org/project/moderation
+====================================
+
+Upgrading moderation from D6 to D7
+----------------------------------
+Moderation offers you an upgradepath from D6 to D7. Follow the upgrade instructions
+in UPGRADE.txt from your drupal installation.
+IMPORTANT! In order to work, the upgradepath needs the devel module. Please change this lines in
+moderation.info to:
+;Currently is devel depended, this should be undone sometime.
+;dependencies[] = devel
+-----------------------
+;Currently is devel depended, this should be undone sometime.
+dependencies[] = devel
+
+If you dont do that, your installation will break! Don't miss to make backups of your database.
