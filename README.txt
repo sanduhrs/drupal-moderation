@@ -31,6 +31,21 @@ INSTALLING
 3. Read more about installing modules at http://drupal.org/node/70151
 
 
+UPGRADING
+---------
+Moderation offers you an upgradepath from D6 to D7. Follow the upgrade instructions
+in UPGRADE.txt
+IMPORTANT! In order to work, the upgradepath needs the devel module. Please change this lines in
+moderation.info to:
+;Currently is devel depended, this should be undone sometime.
+;dependencies[] = devel
+-----------------------
+;Currently is devel depended, this should be undone sometime.
+dependencies[] = devel
+
+If you dont do that, your installation will break!
+
+
 CONFIGURING AND USING
 ---------------------
 1. Go to admin/structure/moderation_types and klick on "Add Moderation" to add a new
